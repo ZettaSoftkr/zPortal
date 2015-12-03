@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>QlikView - AccessPoint</title>
+        <link rel="shortcut icon" type="image/x-icon" href="/QvAjaxZfc/htc/Images/favicon.ico" />
+        <link rel="stylesheet" href="global.css" type="text/css" media="screen" />
+        <link rel="stylesheet" href="custom.css" type="text/css" media="screen" />
+        <script type="text/javascript" src="js/jquery-1.7.min.js"></script>	
+    </head>
+    <body>
+        <div id="frame">
+            <div id="nav_utility">
+            </div>
+            <div id="header">
+                <a href=""><img src="images/logo_main.png" alt="QlikView" id="logo_main"/></a> 
+                <span class="docNum"></span>
+                <span class="lastUpdated"></span>
+            </div>
+            <div id="loginBox">
+                <form action="/QvAJAXZfc/Authenticate.aspx?back=/qlikview/FormLogin.htm" method="post" id="ssoForm">
+                    <span class="formTitle top">User Name:</span><span class="formField"><input type="text" id="username" name="username" title="username" class="top" /></span>
+                    <span class="formTitle">Password:</span><span class="formField"><input type="password" id="password" name="password" title="password"/></span>
+                    <input type="submit" class="loginSubmitButton" value="&nbsp;"/>
+                </form>
+            </div>
+        </div>
+        <div id="footer">
+        </div>
+     <script type="text/javascript">
+    
+    
+        $( document ).ready( function () {
+	   
+
+			var userNm = getUrlVar("userNm"); 
+			var userPw = getUrlVar("userPw");
+			
+			//alert(userNm);
+			//alert(userPw);
+			
+			$("#username").val(userNm );
+			$("#password").val(userPw);
+			$("#ssoForm").submit();
+			
+			
+        });
+        
+		function getUrlVar(key) {
+			var result = new RegExp(key + "=([^&]*)", "i").exec($(location).attr("search"));
+			return result && unescape(result[1]) || "";
+		}
+
+
+    </script>
+    <script type="text/javascript" src="js/login.js"></script>
+    <script type="text/javascript" src="js/accessPoint.js"></script>
+    </body>
+</html>
