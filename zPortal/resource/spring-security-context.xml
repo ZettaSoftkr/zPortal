@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:security="http://www.springframework.org/schema/security"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                        http://www.springframework.org/schema/security
+                        http://www.springframework.org/schema/security/spring-security-3.1.xsd"> 
+    
+    <security:http pattern="/favicon.ico"  security="none" /> 
+    <security:http pattern="/bootstrap/**" security="none"/>
+    <security:http pattern="/assets/**" security="none"/>
+    <security:http pattern="/security/**" security="none"/>
+
+    <security:http pattern="/sso/**" security="none"/>
+    <security:http pattern="/batch/**" security="none"/>
+    <security:http pattern="/etljob/**" security="none"/>
+    <security:http auto-config="true">
+    
+    <security:intercept-url pattern="/security/index.do"  access="ROLE_USER,ROLE_ADMINISTRATOR"/>
+	<security:intercept-url pattern="/admin/**" access="ROLE_ADMINISTRATOR" />
+	<security:intercept-url pattern="/**" access="ROLE_USER,ROLE_ADMINISTRATOR" /> 
+<!-- 	<security:intercept-url pattern="/**" access="ROLE_ANONYMOUS" />     -->
+	<security:form-login login-page="/security/loginPage.do"  authentication-failure-url="/security/loginFailProcess.do" authentication-success-handler-ref="authenticationSuccessHandler"  default-target-url="/security/index.do"/> <!--  login-processing-url="/j_spring_security_check"	-->
+	<security:logout logout-success-url="/security/logout.do" />
+	<security:custom-filter after="EXCEPTION_TRANSLATION_FILTER" ref="ajaxSessionTimeoutFilter"/>
+    </security:http>
+  
+    
+    <security:authentication-manager>
+        <security:authentication-provider user-service-ref="customUserDetailsService">
+<!--             <security:user-service> -->
+<!--                 <security:user name="guest" password="guest" authorities="ROLE_USER" /> -->
+<!--             </security:user-service> -->
+<!-- 			<security:jdbc-user-service data-source-ref="dataSource"   users-by-username-query="SELECT USERNM as username, USERPWD as password ,1 as enabled FROM MEMBER WHERE USERID = ?"     -->
+<!-- 		          authorities-by-username-query="SELECT us.USERNM as username, ur.GROUPROLE as authority FROM MEMBER us, GROUPROLE ur WHERE us.USERID = ur.GROUPID AND us.USERID = ?  "/>   -->
+		   </security:authentication-provider>
+    </security:authentication-manager>
+    <!-- 로그인 성공 후 제어 -->
+    <bean id="authenticationSuccessHandler" class="com.zetta.security.controller.AuthenticationSuccessContorller" />
+   <!-- 세션 만료 제어 -->
+	<bean id="sessionDestoryListener" class="com.zetta.security.controller.SessionDestoryListener" />
+	<bean id="ajaxSessionTimeoutFilter" class="com.zetta.security.controller.AjaxSessionTimeoutFilter">
+<!--        <property name="ajaxHeader" value="AJAX" ></property> -->
+    </bean>
+   
+	
+	
+</beans>

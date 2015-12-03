@@ -1,0 +1,718 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd" >
+<properties>
+  <comment> sql 정의 </comment>
+  <entry key="bookMark.deleteAll"> 
+  	<![CDATA[ DELETE FROM PORTAL.PTL_TB_BKMK_M ]]>
+  </entry>
+  <entry key="dept.deleteAll"> 
+  	<![CDATA[DELETE FROM PORTAL.PTL_TB_DEPT_M]]>
+  </entry>
+  <entry key="dept.deleteDept"> 
+  	<![CDATA[DELETE FROM PORTAL.PTL_TB_DEPT_M WHERE BI_PERM_YN = ?]]>
+  </entry>
+  
+  <entry key="group.getMenuGroupCnt"> 
+  	<![CDATA[
+  	SELECT  groupDept.bi_dept_id  
+  		FROM PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R groupDept  
+  	 WHERE groupDept.bi_group_id = ?
+  	 ]]>
+  </entry>
+  <entry key="group.getMenuGroupList"> 
+  	<![CDATA[ 
+  	SELECT  
+		  gp.bi_group_id 
+		  , gp.bi_group_nm 
+      FROM PORTAL.PTL_TB_GROUP_M gp 
+      LEFT OUTER JOIN (
+		 SELECT 
+		 	 bi_group_id 
+		 	,bi_portal_menu_id
+		  FROM PORTAL.PTL_TB_MENU_GROUP_MAPNG_R 
+	   WHERE bi_portal_menu_id = ? ) mg 
+	   ON gp.bi_group_id = mg.bi_group_id
+      WHERE mg.bi_group_id IS NULL
+     ]]>
+  </entry>
+  <entry key="group.getMenuGroupDelete"> 
+  	 <![CDATA[
+  	 DELETE
+  	 	FROM PORTAL.PTL_TB_MENU_GROUP_MAPNG_R 
+  	 WHERE bi_portal_menu_id = ?
+  	 ]]>
+  </entry>
+  <entry key="group.getMenuGroupMapngList"> 
+  	 <![CDATA[
+  	 SELECT  
+  	   gp.bi_group_id 
+  	  ,gp.bi_group_nm 
+  	 FROM PORTAL.PTL_TB_GROUP_M gp 
+  	 INNER JOIN PORTAL.PTL_TB_MENU_GROUP_MAPNG_R mg  
+  	 ON gp.bi_group_id = mg.bi_group_id 
+  	 WHERE  mg.bi_portal_menu_id = ?  
+  	 GROUP BY gp.bi_group_id,gp.bi_group_nm ]]>
+  </entry>
+  <entry key="group.getMenuGroupRoleList"> 
+  	<![CDATA[
+  	 SELECT 
+  		 bi_author_id 
+  	 FROM PORTAL.PTL_TB_MENU_GROUP_MAPNG_R  
+  	 WHERE  bi_portal_menu_id = ? 
+  	 GROUP BY bi_author_id
+  	 ]]>
+  </entry>
+  <entry key="group.ugDeptMappCnt"> 
+  	<![CDATA[
+  	SELECT  
+  		gdm.bi_dept_id 
+  	FROM PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R gdm  
+  	WHERE gdm.bi_group_id = ? ]]>
+  </entry>
+  
+   <entry key="group.getDeptGroupList1"> 
+  	   <![CDATA[ 
+  	     SELECT  
+  	       dept.bi_dept_id 
+  	     , dept.bi_deptnm  
+		   FROM PORTAL.PTL_TB_DEPT_M dept  
+		 LEFT OUTER JOIN (  
+	         SELECT  
+	          bi_dept_id  
+	        , bi_group_id 
+		 	FROM PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R  
+			WHERE bi_group_id = ? 
+		 ) groupDept  
+		 ON dept.bi_dept_id = groupDept.bi_dept_id 
+		 WHERE groupDept.bi_dept_id IS NULL 
+		 AND dept.bi_deptnm like ? 
+		 ORDER BY dept.bi_dept_id ASC]]>
+  </entry>
+  
+  <entry key="group.getDeptGroupList2"> 
+		<![CDATA[ 
+		  SELECT  
+		    dept.bi_dept_id 
+		   , dept.bi_deptnm  
+		  FROM PORTAL.PTL_TB_DEPT_M dept  
+		LEFT OUTER JOIN (  
+		  SELECT  
+		     bi_dept_id  
+		   , bi_group_id 
+		FROM PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R  
+		WHERE bi_group_id = ? 
+		) groupDept  
+		ON dept.bi_dept_id = groupDept.bi_dept_id 
+		WHERE groupDept.bi_dept_id IS NULL 
+		ORDER BY dept.bi_dept_id ASC]]>
+  </entry>
+  <entry key="group.ugDeptMappDelete"> <!-- 사용자 그룹 조직맵핑 삭제  -->
+		<![CDATA[
+		 DELETE 
+		 FROM  PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R 
+		 WHERE bi_group_id = ?
+		 ]]>
+  </entry>
+  <entry key="group.getDeptGroupMapngList"> 
+		<![CDATA[ SELECT  
+		   dept.bi_dept_id 
+		  ,dept.bi_deptnm 
+		 FROM PORTAL.PTL_TB_DEPT_M dept  
+		 INNER JOIN PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R groupDept 
+		 ON dept.bi_dept_id = groupDept.bi_dept_id 
+		 WHERE  groupDept.bi_group_id = ?]]>
+  </entry>
+   <entry key="group.ugUserMappDelete"> 
+		<![CDATA[ 
+		DELETE 
+		 FROM PORTAL.PTL_TB_GROUP_USER_MAPNG_R 
+		WHERE bi_group_id = ?]]>
+  </entry>
+   <entry key="group.ugUserMappCnt"> 
+		<![CDATA[ 
+		SELECT  
+			bi_group_id 
+		FROM PORTAL.PTL_TB_GROUP_USER_MAPNG_R
+		WHERE bi_group_id = ?]]>
+  </entry>
+  
+   <entry key="group.getUserGroupList"> 
+		<![CDATA[ SELECT 
+		 ud.bi_unity_cust_id
+		,ud.bi_user_nm FROM (
+			SELECT   
+			  u.bi_unity_cust_id
+			, u.bi_user_nm  
+			  FROM PORTAL.PTL_TB_USER_D u 
+			LEFT OUTER JOIN PORTAL.PTL_TB_DEPT_M d  
+			  ON u.bi_dept_id = d.bi_dept_id 
+			  WHERE d.bi_dept_id = ? ) ud  
+		LEFT OUTER JOIN (  
+			SELECT  bi_unity_cust_id 
+			FROM PORTAL.PTL_TB_GROUP_USER_MAPNG_R  
+			WHERE bi_group_id = ? ) g 
+			ON ud.bi_unity_cust_id = g.bi_unity_cust_id 
+			WHERE g.bi_unity_cust_id IS NULL]]>
+  </entry>
+  
+  <entry key="group.getUgUserMapngData"> 
+	<![CDATA[	
+	SELECT 
+	   A.bi_unity_cust_id
+	 , B.bi_user_nm  
+	FROM 
+	PORTAL.PTL_TB_GROUP_USER_MAPNG_R  A
+	LEFT OUTER JOIN PORTAL.PTL_TB_USER_D B
+	ON A.bi_unity_cust_id = B.bi_unity_cust_id
+	WHERE A.bi_group_id = ?	
+	]]>
+  </entry>
+  
+   <entry key="group.getUserGroupListData"> 
+		<![CDATA[ SELECT 
+		  g.bi_group_id
+		, g.bi_group_nm  
+		FROM PORTAL.PTL_TB_GROUP_M g 
+		LEFT OUTER JOIN ( 
+			SELECT  bi_group_id 
+			 FROM PORTAL.PTL_TB_GROUP_MAPNG_R  
+		 	 WHERE bi_menu_group_id = ? ) gm  
+		 ON gm.bi_group_id = g.bi_group_id  
+		 WHERE gm.bi_group_id IS NULL]]>
+  </entry>
+  <entry key="group.deleteAll"> 
+		<![CDATA[ DELETE from PORTAL.PTL_TB_GROUP_M]]>
+  </entry>
+  <entry key="group.deleteUgDeptMappAll"> 
+		<![CDATA[ DELETE from PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R]]>
+  </entry>
+  <entry key="group.deleteUgUserMappAll"> 
+		<![CDATA[ DELETE from PORTAL.PTL_TB_GROUP_USER_MAPNG_R]]>
+  </entry>
+  
+  <entry key="indicator.getIndicatDelete"> 
+		 <![CDATA[DELETE FROM  PORTAL.PTL_TB_INDICATOR where bi_idx_stdr_yy = ?]]>
+  </entry>
+  
+  <entry key="indicator.getIndicatPerfDelete"> 
+		 <![CDATA[ DELETE FROM PORTAL.PTL_TB_INDICATOR_PERF where bi_idx_stdr_yy = ?]]>
+  </entry>
+  <entry key="indicator.getIndicatorYy"> 
+		<![CDATA[SELECT bi_idx_stdr_yy FROM PORTAL.PTL_TB_INDICATOR GROUP BY bi_idx_stdr_yy]]>
+  </entry>
+  <entry key="indicator.getIndicatorVal"> 
+		    <![CDATA[     SELECT 
+				  a.bi_idx_nm
+				, a.bi_idx_stdr_yy
+				, b.bi_idx_stdmt
+				, b.bi_idx_stdr_week
+				, b.bi_acmslt_val
+				, b.bi_acmslt_cn
+				 FROM PORTAL.PTL_TB_INDICATOR a 
+				 LEFT OUTER JOIN PORTAL.PTL_TB_INDICATOR_PERF b
+				 ON a.bi_kpi_cd = b.bi_kpi_cd 
+				 where a.bi_idx_stdr_yy = ? ]]>
+  </entry>
+  <entry key="log.logOutUpdate"> 
+         <![CDATA[ update PORTAL.PTL_TB_LOG_SE_D set bi_logout_dt = ?  where  bi_session_id = ?]]>
+  </entry>
+  
+   <entry key="log.getHistoryView"> 
+<![CDATA[ SELECT 
+ D.BI_PORTAL_MENU_ID 
+ ,D.BI_MENU_NM    
+ ,D.CNT FROM( 
+ SELECT "    
+ C.BI_PORTAL_MENU_ID
+		,C.BI_MENU_NM   
+	,C.CNT
+ FROM(
+ SELECT  
+ A.BI_PORTAL_MENU_ID
+ ,B.BI_MENU_NM "
+ ,COUNT(*) OVER (PARTITION BY A.BI_PORTAL_MENU_ID) AS CNT
+ FROM TSPORTAL.BIS_PTL_TB_LOG_COLCT_D A
+ LEFT OUTER JOIN TSPORTAL.BIS_PTL_TB_MENU_MNG_M B
+ ON A.BI_PORTAL_MENU_ID  = B.BI_PORTAL_MENU_ID 
+ WHERE  A.BI_UNITY_CUST_ID = ?
+ AND A.BI_PORTAL_MENU_ID IS NOT NULL
+ AND  B.BI_MENU_TYPE_YN = ?
+ AND  B.BI_MENU_FM_YN = ?
+ ORDER BY CNT DESC "
+ ) C"
+ GROUP BY C.BI_PORTAL_MENU_ID,C.BI_MENU_NM ,C.CNT
+ ) D where rownum <=5 ORDER BY D.CNT DESC]]>
+  </entry>
+  
+  <entry key="menu.childDelete"> 
+      <![CDATA[delete from menu where bi_portal_menu_parent_id  =  ?]]>
+  </entry>
+  <entry key="menu.deleteMenuAll"> 
+          <![CDATA[delete from PORTAL.PTL_TB_MENU_M where bi_menu_type_yn  =  ? ]]>
+  </entry>
+  <entry key="menu.deleteAll"> 
+          <![CDATA[DELETE FROM PORTAL.PTL_TB_MENU_M]]>
+  </entry>
+  <entry key="menu.deleteInit"> 
+          <![CDATA[DELETE FROM PORTAL.PTL_TB_MENU_M where bi_init_yn = ?]]>
+  </entry>
+  <entry key="menu.getRoleMenuList"> 
+         <![CDATA[ 
+         
+         SELECT C.BI_PORTAL_MENU_ID
+				     ,C.BI_PORTAL_MENU_PARENT_ID 
+				     ,C.BI_MENU_NM 
+				     ,C.BI_MENU_URL_ADDR 
+				     ,C.BI_MENU_SORT_SN 
+				     ,C.BI_MENU_FM_YN 
+				     ,C.BI_TOP_VIEW_YN 				  
+				     ,C.BI_DC 	
+				     ,C.BI_MENU_TYPE_YN
+				     FROM( 
+					 SELECT B.BI_MENU_GROUP_ID FROM ( 
+					  SELECT B.BI_GROUP_ID AS BI_GROUP_ID  
+						 FROM PORTAL.PTL_TB_USER_D A 
+					  LEFT OUTER JOIN PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R B 
+					  ON A.BI_DEPT_ID = B.BI_DEPT_ID 
+					  WHERE A.BI_UNITY_CUST_ID = ? 
+					 AND B.BI_GROUP_ID IS NOT NULL 
+					 UNION ALL 
+					  SELECT BI_GROUP_ID AS BI_GROUP_ID 
+					  FROM PORTAL.PTL_TB_GROUP_USER_MAPNG_R E  
+					  WHERE E.BI_UNITY_CUST_ID = ? 
+					  AND E.BI_GROUP_ID IS NOT NULL 
+					 ) A 
+					 LEFT OUTER JOIN PORTAL.PTL_TB_GROUP_MAPNG_R B 
+					 ON A.BI_GROUP_ID = B.BI_GROUP_ID 
+					 GROUP BY B.BI_MENU_GROUP_ID 
+					 ) A  
+					 LEFT OUTER JOIN PORTAL.PTL_TB_MENUGROUP_MAPNG_R B 
+					 ON A.BI_MENU_GROUP_ID = B.BI_MENU_GROUP_ID 
+					 LEFT OUTER JOIN PORTAL.PTL_TB_MENU_M C 
+					 ON B.BI_PORTAL_MENU_ID = C.BI_PORTAL_MENU_ID 
+					 WHERE C.BI_PORTAL_MENU_PARENT_ID = ? 
+					 GROUP BY C.BI_PORTAL_MENU_ID
+					 , C.BI_PORTAL_MENU_PARENT_ID 
+				     , C.BI_MENU_NM 
+				     , C.BI_MENU_URL_ADDR 
+				     , C.BI_MENU_SORT_SN 
+				     , C.BI_MENU_FM_YN 
+				     , C.BI_TOP_VIEW_YN 
+				     , C.BI_DC
+				     , C.BI_MENU_TYPE_YN
+					 ORDER BY C.BI_MENU_SORT_SN ASC]]>
+  </entry>
+  <entry key="menu.getRoleQlikViewList"> 
+       <![CDATA[  SELECT COUNT(C.BI_PORTAL_MENU_ID) 
+		 FROM( 
+		 SELECT C.BI_MENU_GROUP_ID FROM (  
+		 SELECT BI_GROUP_ID 
+		 ,BI_UNITY_CUST_ID 
+		 FROM (  
+		 SELECT  
+		 B.BI_GROUP_ID AS BI_GROUP_ID 
+		 ,A.BI_UNITY_CUST_ID AS BI_UNITY_CUST_ID 
+		 FROM PORTAL.PTL_TB_USER_D A  
+		 LEFT OUTER JOIN PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R B  
+		 ON A.BI_DEPT_ID = B.BI_DEPT_ID 
+		 WHERE A.BI_UNITY_CUST_ID = ? 
+		 UNION ALL 
+		 SELECT 
+		 BI_GROUP_ID AS BI_GROUP_ID 
+		 ,BI_UNITY_CUST_ID AS BI_UNITY_CUST_ID
+		 FROM PORTAL.PTL_TB_GROUP_USER_MAPNG_R   
+		 WHERE BI_UNITY_CUST_ID = ?
+		 ) GROUP BY BI_GROUP_ID,BI_UNITY_CUST_ID) A 
+		 LEFT OUTER JOIN PORTAL.PTL_TB_QLIKVIEW_USER_M B
+		 ON A.BI_UNITY_CUST_ID  = B.BI_UNITY_CUST_ID
+		 LEFT OUTER JOIN PORTAL.PTL_TB_GROUP_MAPNG_R C 
+		 ON A.BI_GROUP_ID = C.BI_GROUP_ID 
+		 GROUP BY C.BI_MENU_GROUP_ID  
+		 ) A  
+		 LEFT OUTER JOIN PORTAL.PTL_TB_MENUGROUP_MAPNG_R B 
+		 ON A.BI_MENU_GROUP_ID = B.BI_MENU_GROUP_ID 
+		 LEFT OUTER JOIN PORTAL.PTL_TB_MENU_M C 
+		 ON B.BI_PORTAL_MENU_ID = C.BI_PORTAL_MENU_ID 
+		 WHERE C.BI_PORTAL_MENU_ID = ? 
+		 GROUP BY C.BI_PORTAL_MENU_ID]]>
+  </entry>
+  
+   <entry key="menu.getRoleReportList"> 
+        <![CDATA[ SELECT C.BI_PORTAL_MENU_ID
+		     ,C.BI_PORTAL_MENU_PARENT_ID 
+		     ,C.BI_MENU_NM 
+		     ,C.BI_MENU_URL_ADDR 
+		     ,C.BI_MENU_SORT_SN 
+		     ,C.BI_MENU_FM_YN 
+		     FROM( 
+				SELECT B.BI_MENU_GROUP_ID FROM ( 
+			 SELECT BI_GROUP_ID FROM ( 
+			 SELECT B.BI_GROUP_ID AS BI_GROUP_ID    
+				FROM PORTAL.PTL_TB_USER_D A 
+			 LEFT OUTER JOIN PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R B 
+			 ON A.BI_DEPT_ID = B.BI_DEPT_ID 
+				WHERE A.BI_UNITY_CUST_ID = ?  
+			 UNION ALL 
+			 SELECT BI_GROUP_ID AS BI_GROUP_ID 
+			 FROM PORTAL.PTL_TB_GROUP_USER_MAPNG_R E  
+			 WHERE BI_UNITY_CUST_ID = ? 
+			 ) GROUP BY BI_GROUP_ID) A 
+			 LEFT OUTER JOIN PORTAL.PTL_TB_GROUP_MAPNG_R B 
+			 ON A.BI_GROUP_ID = B.BI_GROUP_ID 
+			 GROUP BY B.BI_MENU_GROUP_ID  
+			 )A  
+			 LEFT OUTER JOIN PORTAL.PTL_TB_MENUGROUP_MAPNG_R B 
+			 ON A.BI_MENU_GROUP_ID = B.BI_MENU_GROUP_ID 
+			 LEFT OUTER JOIN PORTAL.PTL_TB_MENU_M C 
+			 ON B.BI_PORTAL_MENU_ID = C.BI_PORTAL_MENU_ID 
+			 WHERE C.BI_PORTAL_MENU_PARENT_ID = ? 
+			 AND C.BI_MENU_TYPE_YN = ? 								
+			 GROUP BY C.BI_PORTAL_MENU_ID
+			 ,C.BI_PORTAL_MENU_PARENT_ID 
+		     ,C.BI_MENU_NM 
+		     ,C.BI_MENU_URL_ADDR 
+		     ,C.BI_MENU_SORT_SN 
+		     ,C.BI_MENU_FM_YN  
+			 ORDER BY C.BI_MENU_SORT_SN ASC]]>
+  </entry>
+  
+  
+  <entry key="menu.getSearchReportList"> 
+        <![CDATA[  SELECT C.BI_PORTAL_MENU_ID
+		     , C.BI_PORTAL_MENU_PARENT_ID 
+		     , C.BI_MENU_NM 
+		     , C.BI_MENU_URL_ADDR 
+		     , C.BI_MENU_SORT_SN
+		     , C.BI_MENU_FM_YN
+		     , C.BI_DC 
+		     , C.BI_UPDT_DT
+		     FROM( 
+				 SELECT B.BI_MENU_GROUP_ID FROM ( 
+			 SELECT BI_GROUP_ID FROM ( 
+			  SELECT B.BI_GROUP_ID AS BI_GROUP_ID    
+				 FROM PORTAL.PTL_TB_USER_D A 
+			  LEFT OUTER JOIN PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R B 
+			  ON A.BI_DEPT_ID = B.BI_DEPT_ID 
+				 WHERE A.BI_UNITY_CUST_ID = ?  
+			 UNION ALL 
+			 SELECT BI_GROUP_ID AS BI_GROUP_ID 
+			 FROM PORTAL.PTL_TB_GROUP_USER_MAPNG_R E  
+			 WHERE BI_UNITY_CUST_ID = ? 
+			 ) GROUP BY BI_GROUP_ID) A 
+			 LEFT OUTER JOIN PORTAL.PTL_TB_GROUP_MAPNG_R B 
+			 ON A.BI_GROUP_ID = B.BI_GROUP_ID 
+			 GROUP BY B.BI_MENU_GROUP_ID  
+			 )A  
+			 LEFT OUTER JOIN PORTAL.PTL_TB_MENUGROUP_MAPNG_R B 
+			 ON A.BI_MENU_GROUP_ID = B.BI_MENU_GROUP_ID 
+			 LEFT OUTER JOIN PORTAL.PTL_TB_MENU_M C 
+			 ON B.BI_PORTAL_MENU_ID = C.BI_PORTAL_MENU_ID 					
+			 WHERE C.BI_MENU_TYPE_YN = ? 
+			 AND C.BI_MENU_FM_YN = ? 	
+			 AND C.BI_MENU_NM LIKE ? 
+			 OR C.BI_SEARCH_KEYWORD LIKE ? 
+			 OR C.BI_DC LIKE ? 
+			 GROUP BY C.BI_PORTAL_MENU_ID
+			 , C.BI_PORTAL_MENU_PARENT_ID 
+		     , C.BI_MENU_NM 
+		     , C.BI_MENU_URL_ADDR 
+		     , C.BI_MENU_SORT_SN 
+		     , C.BI_MENU_FM_YN 
+		     , C.BI_DC 
+		     , C.BI_UPDT_DT
+			 ORDER BY C.BI_MENU_SORT_SN ASC]]>
+  </entry>
+  
+    <entry key="menu.getSearchReportCount"> 
+            <![CDATA[ SELECT C.BI_PORTAL_MENU_ID
+				     ,C.BI_PORTAL_MENU_PARENT_ID 
+				     ,C.BI_MENU_NM 
+				     ,C.BI_MENU_URL_ADDR 
+				     ,C.BI_MENU_SORT_SN 
+				     ,C.BI_MENU_FM_YN 
+				    FROM( 
+						 SELECT B.BI_MENU_GROUP_ID FROM ( 
+					  SELECT BI_GROUP_ID FROM ( 
+					    SELECT B.BI_GROUP_ID AS BI_GROUP_ID    
+						   FROM PORTAL.PTL_TB_USER_D A 
+					    LEFT OUTER JOIN PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R B 
+					    ON A.BI_DEPT_ID = B.BI_DEPT_ID 
+						WHERE A.BI_UNITY_CUST_ID = ?  
+					 UNION ALL 
+					 SELECT BI_GROUP_ID AS BI_GROUP_ID 
+					 FROM PORTAL.PTL_TB_GROUP_USER_MAPNG_R E  
+					 WHERE BI_UNITY_CUST_ID = ? 
+					 ) GROUP BY BI_GROUP_ID) A 
+					 LEFT OUTER JOIN PORTAL.PTL_TB_GROUP_MAPNG_R B 
+					 ON A.BI_GROUP_ID = B.BI_GROUP_ID 
+					 GROUP BY B.BI_MENU_GROUP_ID  
+					 )A  
+					 LEFT OUTER JOIN PORTAL.PTL_TB_MENUGROUP_MAPNG_R B 
+					 ON A.BI_MENU_GROUP_ID = B.BI_MENU_GROUP_ID 
+					 LEFT OUTER JOIN PORTAL.PTL_TB_MENU_M C 
+					 ON B.BI_PORTAL_MENU_ID = C.BI_PORTAL_MENU_ID					
+					 WHERE C.BI_MENU_TYPE_YN = ? 
+					 AND C.BI_MENU_FM_YN = ? 	
+					 AND C.BI_MENU_NM LIKE ? 
+					 OR C.BI_SEARCH_KEYWORD LIKE ? 
+					 OR C.BI_DC LIKE ? 
+					 GROUP BY C.BI_PORTAL_MENU_ID
+					 ,C.BI_PORTAL_MENU_PARENT_ID 
+				     ,C.BI_MENU_NM 
+				     ,C.BI_MENU_URL_ADDR
+				     ,C.BI_MENU_SORT_SN 
+				     ,C.BI_MENU_FM_YN  
+					 ORDER BY C.BI_MENU_SORT_SN ASC]]>
+  </entry>
+  <entry key="menu.getRoleMenuCnt"> 
+    <![CDATA[SELECT 
+     MM.bi_portal_menu_id as bi_portal_menu_id "
+	 FROM PTL_TB_USER_D UR " 
+	 LEFT OUTER JOIN PTL_TB_GROUP_DEPT_MAPNG_R GDM "
+	 ON GDM.BI_DEPT_ID = UR.BI_DEPT_ID " 
+	 AND UR.BI_USER_ID = ? " 
+	 LEFT OUTER JOIN PTL_TB_MENU_GROUP_MAPNG_R  MGM " 
+	 ON GDM.BI_GROUP_ID = MGM.BI_GROUP_ID "
+	 AND MGM.BI_ROLE_ID =  ? " 
+	 LEFT OUTER JOIN PTL_TB_MENU_M MM " 
+	 ON MGM.BI_MENU_ID = MM.BI_MENU_ID " 
+	 WHERE MM.BI_PARENT_ID = ?]]>
+  </entry>
+<entry key="menu.getSiteMap"> 
+  <![CDATA[ WITH n( bi_portal_menu_id,bi_portal_menu_parent_id,bi_menu_nm,bi_menu_sort_sn) AS 
+			    (SELECT  
+			    bi_portal_menu_id
+	            ,bi_portal_menu_parent_id 
+	            ,bi_menu_nm
+	            ,bi_menu_sort_sn
+	            FROM PORTAL.PTL_TB_MENU_M 
+	            WHERE bi_portal_menu_id = ?
+	            UNION ALL 
+	            SELECT  
+			    t2.bi_portal_menu_id
+	            ,t2.bi_portal_menu_parent_id 
+	            ,t2.bi_menu_nm
+	            ,t2.bi_menu_sort_sn
+	            FROM PORTAL.PTL_TB_MENU_M as t2, n
+	            where n.bi_portal_menu_id = t2.bi_portal_menu_parent_id )
+	            SELECT bi_portal_menu_id,bi_portal_menu_parent_id,bi_menu_nm FROM n order by bi_menu_sort_sn asc]]>
+  </entry>
+  <entry key="menu.getSiteMap"> 
+  <![CDATA[ WITH n( bi_portal_menu_id,bi_portal_menu_parent_id,bi_menu_nm,bi_menu_sort_sn) AS 
+			    (SELECT  
+			    bi_portal_menu_id
+	            ,bi_portal_menu_parent_id 
+	            ,bi_menu_nm
+	            ,bi_menu_sort_sn
+	            FROM PORTAL.PTL_TB_MENU_M 
+	            WHERE bi_portal_menu_id = ?
+	            UNION ALL 
+	            SELECT  
+			    t2.bi_portal_menu_id
+	            ,t2.bi_portal_menu_parent_id 
+	            ,t2.bi_menu_nm
+	            ,t2.bi_menu_sort_sn
+	            FROM PORTAL.PTL_TB_MENU_M as t2, n
+	            where n.bi_portal_menu_id = t2.bi_portal_menu_parent_id )
+	            SELECT bi_portal_menu_id,bi_portal_menu_parent_id,bi_menu_nm FROM n order by bi_menu_sort_sn asc]]>
+  </entry>  
+  <entry key="menuGroup.deleteAll"> 
+  	<![CDATA[DELETE FROM PORTAL.PTL_TB_MENUGROUP_M]]>
+  </entry>
+   <entry key="menuGroup.deleteMenuGroupMappAll"> 
+  	<![CDATA[DELETE FROM PORTAL.PTL_TB_MENUGROUP_MAPNG_R]]>
+  </entry>
+  <entry key="menuGroup.deleteMenuGroupUserGroupMappAll"> 
+  	<![CDATA[DELETE FROM PORTAL.PTL_TB_GROUP_MAPNG_R]]>
+  </entry>
+  
+  <entry key="menuGroup.getMenuGroupMappDelete1"> 
+  	<![CDATA[delete from PORTAL.PTL_TB_MENUGROUP_MAPNG_R where bi_menu_group_id = ?]]>
+  </entry>
+  
+   <entry key="menuGroup.getMenuGroupMappDelete2"> 
+  	<![CDATA[delete from PORTAL.PTL_TB_MENUGROUP_MAPNG_R where bi_menu_group_id = ? and bi_portal_menu_id = ?]]>
+  </entry>
+   <entry key="menuGroup.getMenuGroupMappList"> 
+  	<![CDATA[SELECT  
+  	 mm.bi_portal_menu_id  
+  	,mm.bi_portal_menu_parent_id 
+  	,mm.bi_menu_nm 
+  	FROM TSPORTAl.PTL_TB_MENUGROUP_MAPNG_R mgm
+	 LEFT OUTER JOIN TSPORTAl.PTL_TB_MENU_M mm 
+	 ON mgm.bi_portal_menu_id = mm.bi_portal_menu_id 
+	 WHERE mgm.bi_menu_group_id = ?]]>
+  </entry>
+  <entry key="menuGroup.getMenuUserGroupMappDelete1"> 
+  	<![CDATA[DELETE from PORTAL.PTL_TB_GROUP_MAPNG_R where bi_menu_group_id = ?]]>
+  </entry>
+  <entry key="menuGroup.getMenuUserGroupMappDelete2"> 
+  	<![CDATA[DELETE from PORTAL.PTL_TB_GROUP_MAPNG_R where bi_menu_group_id = ? and bi_group_id = ?]]>
+  </entry>
+  <entry key="menuGroup.getMenuUserGroupMappList"> 
+  	<![CDATA[
+  	SELECT 
+  	 g.bi_group_id 
+  	,g.bi_group_nm  
+  	FROM TSPORTAl.PTL_TB_GROUP_MAPNG_R mug
+	 LEFT OUTER JOIN  
+	 TSPORTAl.PTL_TB_GROUP_M g  
+	 ON mug.bi_group_id = g.bi_group_id 
+	WHERE mug.bi_menu_group_id = ?]]>
+  </entry>
+  
+ <entry key="menuGroup.getMenuGroupMappStatus"> 
+  	<![CDATA[
+  	 SELECT 
+	 C.CURRENTID
+	,C.PARENTID
+	,C.NM
+ FROM (
+SELECT 
+  BI_MENU_GROUP_ID AS CURRENTID
+,'#' AS PARENTID 
+, BI_MENU_GROUP_NM as NM
+FROM PTL_TB_MENUGROUP_M
+UNION ALL
+SELECT 
+  A.BI_PORTAL_MENU_ID AS CURRENTID 
+ ,IF(B.BI_PORTAL_MENU_PARENT_ID = '#', A.BI_MENU_GROUP_ID,B.BI_PORTAL_MENU_PARENT_ID) AS PARENTID
+, B.BI_MENU_NM as NM
+FROM PTL_TB_MENUGROUP_MAPNG_R A
+LEFT OUTER JOIN PTL_TB_MENU_M B
+ON A.BI_PORTAL_MENU_ID = B.BI_PORTAL_MENU_ID
+)  C
+GROUP BY  C.CURRENTID
+	,C.PARENTID
+	,C.NM]]>
+  </entry>
+  
+  <entry key="menuGroup.getMenuGroupInitDelete"> 
+  	<![CDATA[
+	  	DELETE 
+		FROM  PTL_TB_MENUGROUP_MAPNG_R 
+		WHERE BI_PORTAL_MENU_ID in (
+        SELECT BI_PORTAL_MENU_ID 
+        FROM  PTL_TB_MENU_M
+        WHERE BI_INIT_YN = ?)
+  	]]>
+  </entry>
+  
+  <entry key="menuGroup.getMenuGroupMappAllStatus"> 
+  	<![CDATA[
+  	SELECT 
+	 BI_GROUP_ID AS CURRENTID
+	,'#' AS PARENTID
+	,BI_GROUP_NM AS NM 
+	FROM 
+	PTL_TB_GROUP_M 
+	UNION ALL
+	SELECT 
+	 A.BI_DEPT_ID AS CURRENTID
+	,A.BI_GROUP_ID AS PARENTID
+	,B.BI_DEPTNM AS NM 
+	FROM
+	PTL_TB_GROUP_DEPT_MAPNG_R A
+	LEFT OUTER JOIN PTL_TB_DEPT_M B
+	ON A.BI_DEPT_ID = B.BI_DEPT_ID
+	
+	UNION ALL
+	
+	SELECT 
+	 C.BI_UNITY_CUST_ID AS CURRENTID
+	,C.BI_DEPT_ID AS PARENTID
+	,C.BI_USER_NM AS NM
+	FROM
+	PTL_TB_GROUP_DEPT_MAPNG_R A
+	LEFT OUTER JOIN PTL_TB_DEPT_M B
+	ON A.BI_DEPT_ID = B.BI_DEPT_ID
+	LEFT OUTER JOIN  PTL_TB_USER_D C
+	ON A.BI_DEPT_ID = C.BI_DEPT_ID
+	
+	UNION ALL
+	
+	SELECT 
+	 B.BI_UNITY_CUST_ID 
+	,A.BI_GROUP_ID
+	,B.BI_USER_NM 
+	FROM 
+	PTL_TB_GROUP_USER_MAPNG_R A
+	 LEFT OUTER JOIN  PTL_TB_USER_D B
+	ON A.BI_UNITY_CUST_ID = B.BI_UNITY_CUST_ID 
+
+]]>
+  </entry>
+  
+  
+  <entry key="portlet.deleteAll"> 
+  	<![CDATA[DELETE FROM PORTAL.PTL_TB_PRTLET_M]]>
+  </entry>
+  <entry key="qlikview.qlikViewLoginDelete"> 
+  	<![CDATA[DELETE FROM PORTAL.PTL_TB_QLIKVIEW_LOGIN_M  where bi_qlikview_user_id = ?]]>
+  </entry>
+  <entry key="qlikview.qlikviewMyLoginInfoDelete"> 
+  	<![CDATA[DELETE From PORTAL.PTL_TB_QLIKVIEW_LOGIN_M  where bi_unity_cust_id = ? and  bi_qlikview_user_id = ?]]>
+  </entry>
+   <entry key="reportCycle.deleteAll"> 
+  	 <![CDATA[DELETE FROM PORTAL.PTL_TB_REPRT_CYCLE_M]]>
+  </entry>
+  <entry key="security.getGroupRoleList">   
+  	 <![CDATA[ 
+  	 
+	 	SELECT G.BI_GROUP_AUTHOR_ID FROM
+		 (SELECT H.BI_GROUP_ID
+		 FROM (
+		 SELECT D.BI_GROUP_ID as BI_GROUP_ID
+		 FROM (
+		 SELECT B.BI_DEPT_ID	
+		 FROM PORTAL.PTL_TB_USER_D A
+		 LEFT OUTER JOIN PORTAL.PTL_TB_DEPT_M B	
+		 ON A.BI_DEPT_ID = B.BI_DEPT_ID
+		 WHERE A.BI_UNITY_CUST_ID = ?) C 
+		 LEFT OUTER JOIN PORTAL.PTL_TB_GROUP_DEPT_MAPNG_R D  
+		 ON C.BI_DEPT_ID = D.BI_DEPT_ID
+		 UNION ALL
+		 SELECT E.BI_GROUP_ID AS BI_GROUP_ID
+		 FROM PORTAL.PTL_TB_GROUP_USER_MAPNG_R E
+		 WHERE BI_UNITY_CUST_ID = ?) H
+		 WHERE H.BI_GROUP_ID IS NOT NULL
+		 GROUP BY H.BI_GROUP_ID ) F
+		 LEFT OUTER JOIN PORTAL.PTL_TB_GROUP_M G
+		 ON F.BI_GROUP_ID = G.BI_GROUP_ID
+  	 
+  	 ]]>
+		 
+  </entry>
+    <entry key="security.deleteAll"> 
+  	<![CDATA[DELETE FROM PORTAL.BIS_PTL_VW_USER_LOGIN_M]]>
+  </entry>
+ <entry key="setMain.deleteAll"> 
+     <![CDATA[DELETE FROM PORTAL.PTL_TB_PGE_ESTBS_M]]>
+  </entry>
+ <entry key="userInfo.deleteAll"> 
+    <![CDATA[DELETE FROM PORTAL.PTL_TB_USER_D]]>
+  </entry>
+  <entry key="userInfo.deleteUser"> 
+    <![CDATA[DELETE FROM PORTAL.PTL_TB_USER_D WHERE BI_PERM_YN = ?]]>
+  </entry>
+   <entry key="userInfo.deleteDeptUser"> 
+    <![CDATA[DELETE FROM PORTAL.PTL_TB_USER_D WHERE BI_DEPT_ID = ?]]>
+  </entry>
+   <entry key="userInfo.getDeptUserList"> 
+  	<![CDATA[
+		SELECT 
+			 BI_DEPT_ID AS CURRENTID
+			,'#' AS PARENTID
+			,BI_DEPTNM AS NM
+		FROM 
+		PTL_TB_DEPT_M
+		UNION ALL
+		SELECT
+		  BI_UNITY_CUST_ID AS CURRENTID
+		 ,BI_DEPT_ID AS PARENTID
+		 ,BI_USER_NM AS NM	 
+		FROM 
+		PTL_TB_USER_D
+	]]>
+  </entry>
+</properties>
