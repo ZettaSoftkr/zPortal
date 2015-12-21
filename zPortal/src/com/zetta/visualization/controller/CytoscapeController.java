@@ -51,6 +51,7 @@ public class CytoscapeController {
 		conn.setDepthNodes(menuList, rootId, rootName, Integer.valueOf(depth));
 
 		ModelAndView mav = new ModelAndView();
+		logger.info(conn.getJson());
 		mav.addObject("json", conn.getJson());
 		mav.setViewName("jsonView");
 		return mav;
@@ -86,4 +87,30 @@ public class CytoscapeController {
 		return mav;
 
 	}
+	
+	
+	@RequestMapping(value = "/visualization/getStringList.do", method = RequestMethod.GET)
+	@ResponseBody
+	public ModelAndView getStringList(HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+		List<Menu> menuList = menuService.findAllList();
+		String resultStr = "{";
+		for (int i = 0; i < menuList.size(); i++) {
+			HashMap<String, String> map = new HashMap<String, String>();
+
+			String id = menuList.get(i).getBi_portal_menu_id();
+			String parent = menuList.get(i).getBi_portal_menu_parent_id();
+			String name = menuList.get(i).getBi_menu_nm();
+			
+			resultStr = resultStr + "{\"" + id + "\","  + "\"" + parent + "\"," + "\"" + name + "\"},";
+		}
+
+	
+		ModelAndView mav = new ModelAndView();
+		mav.addObject("json", resultStr);
+		mav.setViewName("jsonView");
+		return mav;
+	}
+	
+	
 }
