@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>ZettaSoft</title>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type">
+<script src="./js/libs/jquery-2.1.4.min.js"></script>
+<script src="./js/libs/cytoscape.min.js"></script>
+<script src="./js/libs/cytoscape-qtip.js"></script>
+<script src="./js/libs/handlebars-v4.0.5.js"></script>
+<script src="./js/libs/typeahead.bundle.js"></script>
+<script src="./js/libs/jquery.qtip-2.2.min.js"></script>
+<script src="./js/libs/bluebird.min.js"></script>
+<script src="./js/libs/bootstrap_3.3.6/bootstrap.min.js"></script>
+<script src="./js/model/CYRootNode.js"></script>
+<script src="./js/model/CYNode.js"></script>
+<script src="./js/model/CYData.js"></script>
+<script src="./js/model/CYEdgeData.js"></script>
+<script src="./js/model/CYEdge.js"></script>
+<script src="./js/model/CYPosition.js"></script>
+<script src="./code.js"></script>
+<link href="./css/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<link href="./css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+<link href="./css/qTip2/jquery.qtip.min.css" rel="stylesheet" />
+<link href="./style.css" rel="stylesheet" />
+</head>
+<body data-spy="scroll" data-target="#tutorial-menu">
+	<div id="path"></div>
+	<div id="cy"></div>
+	<div id="loading">
+		<span class="fa fa-refresh fa-spin"></span>
+	</div>
+	<div id="search-wrapper">
+		<input type="text" class="form-control" id="search" autofocus placeholder="Search">
+	</div>
+	<div id="info"></div>
+	<button id="reset" class="btn btn-default">
+		<i class="fa fa-arrows-h"></i>
+	</button>
+
+	<button id="filter" class="btn btn-default">
+		<i class="fa fa-filter"></i>
+	</button>
+	<div id="filters">
+		<strong>시스템 활용</strong>
+			<input id="usage1" type="checkbox" checked></input><label for="usage1">CPU 평균 활용율</label><br />
+			<input id="usage2" type="checkbox" checked></input><label for="usage2">메모리 평균 활용율</label><br />
+			<input id="usage3" type="checkbox" checked></input><label for="usage3">테이블 데이터 보유량</label><br />
+		<hr/>
+		<strong>시스템 운영</strong>
+			<input id="manage1" type="checkbox" checked></input><label for="manage1">DB 테이블 검럼수</label><br />
+			<input id="manage2" type="checkbox" checked></input><label for="manage2">DB 버전 상이</label><br />
+			<input id="manage3" type="checkbox" checked></input><label for="manage3">DB 버전 노후</label>
+		<hr/>
+		<strong>시스템 비용</strong>
+			<input id="cost1" type="checkbox" checked></input><label for="cost1">누적 유지보수비율</label><br />
+			<input id="cost2" type="checkbox" checked></input><label for="cost2">투입 운영유지비용 증감율</label><br />
+			<input id="cost3" type="checkbox" checked></input><label for="cost3">평균 운영유지비용 증감율</label>
+	</div>
+</body>
+<script>
+$(function() { // on dom ready
+
+	var dataSet;
+	var colorSet;
+	var rootNode;
+	
+	initData();
+	getData("#", "교통안전공단", 3);
+
+	function initData() {
+		dataSet = [ [ "101", "90", "검사운영" ], [ "1", "#", "관리실" ], [ "26", "7", "공지사항" ], [ "24", "7", "자료실" ],
+				[ "2", "#", "서비스메뉴" ], [ "8", "1", "메뉴관리" ], [ "12", "1", "사용자관리" ], [ "102", "90", "자동차검사" ],
+				[ "103", "90", "경영정보" ], [ "3", "#", "MY PAGE" ], [ "25", "7", "FAQ" ], [ "27", "7", "QNA" ],
+				[ "4", "#", "사이트맵" ], [ "104", "90", "운수회사" ], [ "105", "90", "운수종사자" ], [ "5", "#", "색인검색" ],
+				[ "28", "7", "공공개방데이터" ], [ "6", "#", "보고서검색" ], [ "106", "90", "운전행태" ], [ "107", "90", "시스템" ],
+				[ "7", "#", "정보마당" ], [ "108", "91", "자동차검사" ], [ "109", "91", "경영정보" ], [ "9", "1", "사용자그룹관리" ],
+				[ "10", "1", "메뉴그룹관리" ], [ "110", "91", "통합분석" ], [ "200", "101", "검사운영대시보드" ], [ "11", "1", "정보마당" ],
+				[ "13", "3", "즐겨찾기관리" ], [ "14", "12", "QlikView사용현황" ], [ "203", "102", "자동차 검사대상" ],
+				[ "204", "102", "자동차 검사실적" ], [ "15", "12", "사용자관리" ], [ "16", "12", "조직관리" ],
+				[ "205", "102", "자동차 검사결과" ], [ "206", "102", "이륜차" ], [ "17", "9", "사용자그룹관리" ],
+				[ "18", "10", "메뉴사용자그룹맵핑" ], [ "207", "102", "내압용기" ], [ "208", "102", "자동차 수검지수" ],
+				[ "19", "10", "메뉴그룹관리" ], [ "20", "11", "자료실" ], [ "209", "102", "자동차 주행거리" ], [ "210", "103", "정규직" ],
+				[ "21", "11", "공지사항" ], [ "22", "11", "QNA" ], [ "211", "107", "마스터데이터 현황" ],
+				[ "212", "107", "시스템 현황" ], [ "23", "11", "FAQ" ], [ "213", "107", "ETL 현황" ],
+				[ "214", "107", "개인별 사용 현황" ], [ "215", "107", "개인별 접속 현황" ], [ "216", "107", "접속 실패 정보 현황" ],
+				[ "217", "107", "사용자별 기간별 보고서 현황" ], [ "218", "107", "자주 활용되는 보고서" ], [ "29", "3", "자료실" ],
+				[ "30", "3", "QNA" ], [ "219", "107", "장기 미사용 보고서" ], [ "220", "107", "통합DB DW 구성확인" ],
+				[ "221", "107", "통합DB ODS정보 검색" ], [ "90", "2", "정형보고서" ], [ "91", "2", "고급분석" ],
+				[ "222", "107", "보고서 이력정보" ], [ "223", "104", "교통안전진단 운수회사 사고 추이" ], [ "92", "2", "공통API" ],
+				[ "93", "#", "관리콘솔" ], [ "224", "104", "교통안전관리규정 확인평가 운수회사 사고 추이" ],
+				[ "225", "104", "사고다발 운수회사 사고 추이" ], [ "226", "104", "교통사고지수 상위 운수회사 사고 추이" ],
+				[ "227", "104", "지역본부(지사) 관리 운수회사 사고 추이" ], [ "228", "104", "사고다발 운수회사 진단 및 규정심사 전후 종사자 증감 추이" ],
+				[ "229", "104", "업종별 법규위반별 사고 증감" ], [ "230", "104", "업종별 행정처분 증감 추이" ],
+				[ "231", "104", "교통안전진단 전후 사고 그래프" ], [ "232", "104", "교통안전관리규정 심사 전후 사고 그래프" ],
+				[ "233", "104", "교통안전진단 운수회사 사고 증감 추이" ], [ "234", "104", "운수회사 보유 차량 검사 결과" ],
+				[ "235", "104", "운수회사 보유 차량 배출가스 검사 결과" ], [ "236", "105", "장기 무사고운전자 특성 분석" ],
+				[ "237", "105", "고령운전자 특성 분석" ], [ "238", "105", "여성운전자 특성 분석" ],
+				[ "239", "105", "장기 무사고 운수종사자 정밀검사 분석" ], [ "240", "105", "장기 무사고 운수종사자 체험교육 분석" ],
+				[ "241", "105", "업종별 위험행동 분석" ], [ "242", "105", "고령 운전자 근속년수별 운전적성정밀검사 분석" ],
+				[ "243", "105", "고령 운전자 근속년수별 체험교육 분석" ], [ "244", "105", "고령 운전자 근속년수별 교통사고 분석" ],
+				[ "245", "105", "행정처분 운전자 현황 분석" ], [ "246", "105", "음주운전 적발 종사자 현황 분석" ],
+				[ "247", "105", "면허 정지취소 이력 종사자 현황 분석" ], [ "248", "105", "교통사고 발생 종사자 현황 및 특성 분석" ],
+				[ "249", "105", "중대사고 발생 종사자 현황 및 특성 분석" ], [ "250", "105", "법규위반 사고다발자 운전정밀검사 분석" ],
+				[ "251", "105", "법규위반 사고다발자 체험교육 분석" ], [ "252", "105", "운전적성정밀검사 결과 분석(연령별)" ],
+				[ "253", "105", "운전적성정밀검사 결과 분석(사고종류별)" ], [ "254", "105", "운전적성정밀검사 결과 분석(근속년수별)" ],
+				[ "255", "105", "업종별 운전적성정밀검사 결과 대 운행기록 분석" ], [ "256", "105", "사고 운전자 운전적성정밀검사 결과 분석" ],
+				[ "257", "105", "사고유형별 근속년수별 사고 분석" ], [ "258", "105", "근속년수별 인지반응 분석" ],
+				[ "259", "105", "근속년수별 사고 분석" ], [ "260", "105", "업종별 인지반응 분석" ],
+				[ "261", "105", "지역별 운수회사별 업종별 교통사고지수 분석" ], [ "262", "105", "교통사고 안전도평가 지수 분석" ],
+				[ "263", "105", "법규위반 유형별 사고 분석" ], [ "264", "106", "체험교육 전후 운전행태 교정 효과 분석" ],
+				[ "265", "106", "체험교육 전후 사고 감소율 분석" ], [ "266", "106", "업종별 운전경력별 운전행태 분석" ],
+				[ "267", "106", "업종별 시간대별 위험운전유형 분석" ], [ "268", "102", "1억KM 주행거리당 사고 현황 분석" ],
+				[ "269", "102", "시도별 년도별 주행거리당 사고 현황 분석" ], [ "300", "108", "자동차검사대상" ], [ "301", "108", "자동차검사실적" ],
+				[ "302", "108", "자동차검사결과" ], [ "303", "108", "이륜차" ], [ "304", "108", "내압용기" ],
+				[ "305", "108", "자동차수검지수" ], [ "306", "108", "자동차주행거리" ], [ "307", "109", "정규직" ],
+				[ "308", "108", "통합배출가스검사결과_내역" ], [ "309", "108", "통합자동차검사결과_내역" ],
+				[ "310", "110", "년도별안전관리규정심사회사_내역" ], [ "311", "110", "년도별안전진단회사_내역" ],
+				[ "312", "110", "운수종사자사고월별_요약" ], [ "313", "110", "진단심사전후분석_내역" ], [ "314", "110", "통합안전진단보고서_내역" ],
+				[ "315", "110", "통합운전자사고정보월_내역" ], [ "316", "110", "통합운전자사고정보일_내역" ],
+				[ "317", "110", "통합주행거리운전자사고상관분석_내역" ], [ "318", "110", "사고다발자_내역" ],
+				[ "319", "110", "운수종사자마스터기본_이력" ], [ "320", "110", "운수종사자월_내역" ], [ "321", "110", "중복법규위반자_내역" ],
+				[ "322", "110", "통합운수종사자행정처분_내역" ], [ "323", "110", "통합운전면허취소정지_내역" ], [ "324", "110", "사고다발회사_내역" ],
+				[ "325", "110", "운수회사마스터월_내역" ], [ "326", "110", "운수회사월_내역" ], [ "327", "110", "중점관리운수회사_내역" ],
+				[ "328", "110", "최근3년사고지수상위회사_내역" ], [ "329", "110", "통합교통사고지수_내역" ], [ "330", "110", "배차기준운행기록_내역" ],
+				[ "331", "110", "운전정밀검사실적_내역" ], [ "332", "110", "통합시간대별운행기록_내역" ], [ "333", "110", "체험교육결과_내역" ] ];
+
+		colorSet = [ "#00BFFF", "#1E90FF", "#0000FF", "#0064CD", "#000069", "#3DFF92", "#64CD3C", "#006400", "#008080",
+				"#FF5675", "#FF82FF", "#FF1493", "#C71585", "#B9062F", "#FFDC3C", "#FFB400", "#FF8200", "#FF7F50",
+				"#8B4513", "#F56E6E", "#FF0000", "#800000", "#CD853F", "#D2691E", "#8B4513", "#DA70D6", "#9400D3",
+				"#800080", "#828282", "#000000" ];
+	}
+
+	function getData(rootId, rootName, depth) {
+		var loading = document.getElementById('loading');
+
+		rootNode = new CYRootNode(rootId, rootName, depth);
+		rootNode.getNodesWithIdAndDepth(dataSet, rootId, depth, colorSet);
+		//document.write(JSON.stringify(rootNode));
+		var cy = window.cy = cytoscape({
+			container : document.getElementById('cy'),
+			layout : {
+				name : 'cose',
+				padding : 10
+			},
+			motionBlur : true,
+			selectionType : 'single',
+			boxSelectionEnabled : false,
+			autoungrabify : true,
+			style : cytoscape.stylesheet().selector('node').css({
+				'shape' : 'data(faveShape)',
+				'width' : 'mapData(weight, 40, 80, 20, 60)',
+				'content' : 'data(name)',
+				'text-valign' : 'center',
+				'text-outline-width' : 2,
+				'text-outline-color' : 'data(faveColor)',
+				'background-color' : 'data(faveColor)',
+				'color' : '#fff'
+			}).selector(':selected').css({
+				'border-width' : 3,
+				'border-color' : '#333'
+			}).selector('edge').css({
+				'opacity' : 0.666,
+				'width' : 'mapData(strength, 70, 100, 2, 6)',
+				'target-arrow-shape' : 'triangle',
+				'source-arrow-shape' : 'circle',
+				'line-color' : 'data(faveColor)',
+				'source-arrow-color' : 'data(faveColor)',
+				'target-arrow-color' : 'data(faveColor)'
+			}).selector('edge.questionable').css({
+				'line-style' : 'dotted',
+				'target-arrow-shape' : 'diamond'
+			}).selector('.faded').css({
+				'opacity' : 0.25,
+				'text-opacity' : 0
+			}),
+
+			elements : jQuery.parseJSON(JSON.stringify(rootNode)),
+
+			ready : function() {
+				window.cy = this;
+				// giddy up
+			}
+		});
+
+		cy.on('free', 'node', function(e) {
+			var n = e.cyTarget;
+			var p = n.position();
+
+			n.data('orgPos', {
+				x : p.x,
+				y : p.y
+			});
+		});
+
+		cy.on('tap', function() {
+			$('#search').blur();
+		});
+
+		cy.on('select', 'node', function(e) {
+			var node = this;
+
+			highlight(node);
+			showNodeInfo(node);
+		});
+
+		cy.on('unselect', 'node', function(e) {
+			var node = this;
+			clear();
+			hideNodeInfo();
+		});
+
+		loading.classList.add('loaded');
+	}
+
+	var layoutPadding = 50;
+	var layoutDuration = 500;
+
+	var infoTemplate = Handlebars.compile([ '<p class="ac-name">{{name}}</p>' ].join(''));
+
+	function highlight(node) {
+		var nhood = node.closedNeighborhood();
+
+		cy.batch(function() {
+			cy.elements().not(nhood).removeClass('highlighted').addClass('faded');
+			nhood.removeClass('faded').addClass('highlighted');
+
+			var npos = node.position();
+			var w = window.innerWidth;
+			var h = window.innerHeight;
+
+			cy.stop().animate({
+				fit : {
+					eles : cy.elements(),
+					padding : layoutPadding
+				}
+			}, {
+				duration : layoutDuration
+			}).delay(layoutDuration, function() {
+				nhood.layout({
+					name : 'concentric',
+					padding : layoutPadding,
+					animate : true,
+					animationDuration : layoutDuration,
+					boundingBox : {
+						x1 : npos.x - w / 2,
+						x2 : npos.x + w / 2,
+						y1 : npos.y - w / 2,
+						y2 : npos.y + w / 2
+					},
+					fit : true,
+					concentric : function(n) {
+						if (node.id() === n.id()) {
+							return 2;
+						} else {
+							return 1;
+						}
+					},
+					levelWidth : function() {
+						return 1;
+					}
+				});
+			});
+
+		});
+	}
+
+	function clear() {
+		cy.batch(function() {
+			cy.$('.highlighted').forEach(function(n) {
+				n.animate({
+					position : n.data('orgPos')
+				});
+			});
+
+			cy.elements().removeClass('highlighted').removeClass('faded');
+		});
+	}
+
+	function showNodeInfo(node) {
+		$('#info').html(infoTemplate(node.data())).show();
+	}
+
+	function hideNodeInfo() {
+		$('#info').hide();
+	}
+
+	$('#search').typeahead({
+		minLength : 2,
+		highlight : true,
+	}, {
+		name : 'search-dataset',
+		source : function(query, cb) {
+			function matches(str, q) {
+				str = (str || '').toLowerCase();
+				q = (q || '').toLowerCase();
+
+				return str.match(q);
+			}
+
+			var fields = [ 'name', 'NodeType', 'Country', 'Type', 'Milk' ];
+
+			function anyFieldMatches(n) {
+				for (var i = 0; i < fields.length; i++) {
+					var f = fields[i];
+
+					if (matches(n.data(f), query)) {
+						return true;
+					}
+				}
+
+				return false;
+			}
+
+			function getData(n) {
+				var data = n.data();
+
+				return data;
+			}
+
+			function sortByName(n1, n2) {
+				if (n1.data('name') < n2.data('name')) {
+					return -1;
+				} else if (n1.data('name') > n2.data('name')) {
+					return 1;
+				}
+
+				return 0;
+			}
+
+			var res = cy.nodes().stdFilter(anyFieldMatches).sort(sortByName).map(getData);
+
+			cb(res);
+		},
+		templates : {
+			suggestion : infoTemplate
+		}
+	}).on('typeahead:selected', function(e, entry, dataset) {
+		var n = cy.getElementById(entry.id);
+
+		n.select();
+		showNodeInfo(n);
+	});
+
+	$('#reset').on('click', function() {
+		cy.animate({
+			fit : {
+				eles : cy.elements(),
+				padding : layoutPadding
+			},
+			duration : layoutDuration
+		});
+	});
+
+	$('#filters').on(
+			'click',
+			'input',
+			function() {
+
+				var soft = $('#soft').is(':checked');
+				var semiSoft = $('#semi-soft').is(':checked');
+				var na = $('#na').is(':checked');
+				var semiHard = $('#semi-hard').is(':checked');
+				var hard = $('#hard').is(':checked');
+
+				var red = $('#red').is(':checked');
+				var white = $('#white').is(':checked');
+				var cider = $('#cider').is(':checked');
+
+				cy.batch(function() {
+
+					cy.nodes().forEach(
+							function(n) {
+								var type = n.data('NodeType');
+
+								n.removeClass('filtered');
+
+								var filter = function() {
+									n.addClass('filtered');
+								};
+
+								if (type === 'Cheese') {
+
+									var cType = n.data('Type');
+
+									if ((cType === 'Soft' && !soft) || (cType === 'Semi-soft' && !semiSoft)
+											|| (cType === undefined && !na) || (cType === 'Semi-hard' && !semiHard)
+											|| (cType === 'Hard' && !hard)) {
+										filter();
+									}
+
+								} else if (type === 'RedWine') {
+
+									if (!red) {
+										filter();
+									}
+
+								} else if (type === 'WhiteWine') {
+
+									if (!white) {
+										filter();
+									}
+
+								} else if (type === 'Cider') {
+
+									if (!cider) {
+										filter();
+									}
+
+								}
+
+							});
+
+				});
+
+			});
+
+	$('#filter').qtip({
+		position : {
+			my : 'top center',
+			at : 'bottom center'
+		},
+
+		show : {
+			event : 'click'
+		},
+
+		hide : {
+			event : 'unfocus'
+		},
+
+		style : {
+			classes : 'qtip-bootstrap',
+			tip : {
+				width : 16,
+				height : 8
+			}
+		},
+
+		content : $('#filters')
+	});
+
+}); // on dom ready
+</script>
+</html>

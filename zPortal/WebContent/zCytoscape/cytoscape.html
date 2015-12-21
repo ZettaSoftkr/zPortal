@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>toolbar</title>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type">
+<link href="./css/font-awesome-4.0.3/css/font-awesome.css" rel="stylesheet" type="text/css" />
+<script src="./js/libs/jquery-2.1.4.min.js"></script>
+<script src="./js/libs/cytoscape.min.js"></script>
+<script type="text/javascript" src="./js/libs/bootstrap_3.3.6/bootstrap.min.js"></script>
+<script src="./js/libs/cytoscape-cxtmenu.js"></script>
+<script src="./js/model/CYRootNode.js"></script>
+<script src="./js/model/CYNode.js"></script>
+<script src="./js/model/CYData.js"></script>
+<script src="./js/model/CYEdgeData.js"></script>
+<script src="./js/model/CYEdge.js"></script>
+<script src="./js/model/CYPosition.js"></script>
+
+<!-- page style -->
+<style>
+body {
+	font-family: helvetica;
+	font-size: 14px;
+}
+
+#path {
+	width: 500px;
+	height: 30px;
+}
+#cy {
+	width: 500px;
+	height: 500px;
+}
+</style>
+</head>
+<body data-spy="scroll" data-target="#tutorial-menu">
+	<div id="path" ></div>
+	<div id="cy" ></div>
+</body>
+
+<!-- cy outlook script -->
+<script>
+$(function() { // on dom ready
+	
+	//initial
+	init();
+});
+
+var dataSet;
+var rootNode;
+
+function init(){
+	initData();
+	getData("#", "교통안전공단" ,5);
+}
+
+function initData(){
+ 	dataSet = [["101","90","검사운영"],["1","#","관리실"],["26","7","공지사항"],["24","7","자료실"],["2","#","서비스메뉴"],["8","1","메뉴관리"],["12","1","사용자관리"],["102","90","자동차검사"],["103","90","경영정보"],["3","#","MY PAGE"],["25","7","FAQ"],["27","7","QNA"],["4","#","사이트맵"],["104","90","운수회사"],["105","90","운수종사자"],["5","#","색인검색"],["28","7","공공개방데이터"],["6","#","보고서검색"],["106","90","운전행태"],["107","90","시스템"],["7","#","정보마당"],["108","91","자동차검사"],["109","91","경영정보"],["9","1","사용자그룹관리"],["10","1","메뉴그룹관리"],["110","91","통합분석"],["200","101","검사운영대시보드"],["11","1","정보마당"],["13","3","즐겨찾기관리"],["14","12","QlikView사용현황"],["203","102","자동차 검사대상"],["204","102","자동차 검사실적"],["15","12","사용자관리"],["16","12","조직관리"],["205","102","자동차 검사결과"],["206","102","이륜차"],["17","9","사용자그룹관리"],["18","10","메뉴사용자그룹맵핑"],["207","102","내압용기"],["208","102","자동차 수검지수"],["19","10","메뉴그룹관리"],["20","11","자료실"],["209","102","자동차 주행거리"],["210","103","정규직"],["21","11","공지사항"],["22","11","QNA"],["211","107","마스터데이터 현황"],["212","107","시스템 현황"],["23","11","FAQ"],["213","107","ETL 현황"],["214","107","개인별 사용 현황"],["215","107","개인별 접속 현황"],["216","107","접속 실패 정보 현황"],["217","107","사용자별 기간별 보고서 현황"],["218","107","자주 활용되는 보고서"],["29","3","자료실"],["30","3","QNA"],["219","107","장기 미사용 보고서"],["220","107","통합DB DW 구성확인"],["221","107","통합DB ODS정보 검색"],["90","2","정형보고서"],["91","2","고급분석"],["222","107","보고서 이력정보"],["223","104","교통안전진단 운수회사 사고 추이"],["92","2","공통API"],["93","#","관리콘솔"],["224","104","교통안전관리규정 확인평가 운수회사 사고 추이"],["225","104","사고다발 운수회사 사고 추이"],["226","104","교통사고지수 상위 운수회사 사고 추이"],["227","104","지역본부(지사) 관리 운수회사 사고 추이"],["228","104","사고다발 운수회사 진단 및 규정심사 전후 종사자 증감 추이"],["229","104","업종별 법규위반별 사고 증감"],["230","104","업종별 행정처분 증감 추이"],["231","104","교통안전진단 전후 사고 그래프"],["232","104","교통안전관리규정 심사 전후 사고 그래프"],["233","104","교통안전진단 운수회사 사고 증감 추이"],["234","104","운수회사 보유 차량 검사 결과"],["235","104","운수회사 보유 차량 배출가스 검사 결과"],["236","105","장기 무사고운전자 특성 분석"],["237","105","고령운전자 특성 분석"],["238","105","여성운전자 특성 분석"],["239","105","장기 무사고 운수종사자 정밀검사 분석"],["240","105","장기 무사고 운수종사자 체험교육 분석"],["241","105","업종별 위험행동 분석"],["242","105","고령 운전자 근속년수별 운전적성정밀검사 분석"],["243","105","고령 운전자 근속년수별 체험교육 분석"],["244","105","고령 운전자 근속년수별 교통사고 분석"],["245","105","행정처분 운전자 현황 분석"],["246","105","음주운전 적발 종사자 현황 분석"],["247","105","면허 정지취소 이력 종사자 현황 분석"],["248","105","교통사고 발생 종사자 현황 및 특성 분석"],["249","105","중대사고 발생 종사자 현황 및 특성 분석"],["250","105","법규위반 사고다발자 운전정밀검사 분석"],["251","105","법규위반 사고다발자 체험교육 분석"],["252","105","운전적성정밀검사 결과 분석(연령별)"],["253","105","운전적성정밀검사 결과 분석(사고종류별)"],["254","105","운전적성정밀검사 결과 분석(근속년수별)"],["255","105","업종별 운전적성정밀검사 결과 대 운행기록 분석"],["256","105","사고 운전자 운전적성정밀검사 결과 분석"],["257","105","사고유형별 근속년수별 사고 분석"],["258","105","근속년수별 인지반응 분석"],["259","105","근속년수별 사고 분석"],["260","105","업종별 인지반응 분석"],["261","105","지역별 운수회사별 업종별 교통사고지수 분석"],["262","105","교통사고 안전도평가 지수 분석"],["263","105","법규위반 유형별 사고 분석"],["264","106","체험교육 전후 운전행태 교정 효과 분석"],["265","106","체험교육 전후 사고 감소율 분석"],["266","106","업종별 운전경력별 운전행태 분석"],["267","106","업종별 시간대별 위험운전유형 분석"],["268","102","1억KM 주행거리당 사고 현황 분석"],["269","102","시도별 년도별 주행거리당 사고 현황 분석"],["300","108","자동차검사대상"],["301","108","자동차검사실적"],["302","108","자동차검사결과"],["303","108","이륜차"],["304","108","내압용기"],["305","108","자동차수검지수"],["306","108","자동차주행거리"],["307","109","정규직"],["308","108","통합배출가스검사결과_내역"],["309","108","통합자동차검사결과_내역"],["310","110","년도별안전관리규정심사회사_내역"],["311","110","년도별안전진단회사_내역"],["312","110","운수종사자사고월별_요약"],["313","110","진단심사전후분석_내역"],["314","110","통합안전진단보고서_내역"],["315","110","통합운전자사고정보월_내역"],["316","110","통합운전자사고정보일_내역"],["317","110","통합주행거리운전자사고상관분석_내역"],["318","110","사고다발자_내역"],["319","110","운수종사자마스터기본_이력"],["320","110","운수종사자월_내역"],["321","110","중복법규위반자_내역"],["322","110","통합운수종사자행정처분_내역"],["323","110","통합운전면허취소정지_내역"],["324","110","사고다발회사_내역"],["325","110","운수회사마스터월_내역"],["326","110","운수회사월_내역"],["327","110","중점관리운수회사_내역"],["328","110","최근3년사고지수상위회사_내역"],["329","110","통합교통사고지수_내역"],["330","110","배차기준운행기록_내역"],["331","110","운전정밀검사실적_내역"],["332","110","통합시간대별운행기록_내역"],["333","110","체험교육결과_내역"]];
+}
+
+function getData(rootId, rootName, depth){
+
+		rootNode = new CYRootNode(rootId, rootName, depth);
+		rootNode.getNodesWithIdAndDepth(dataSet, rootId, depth);
+
+		var cy = window.cy = cytoscape({
+			container : document.getElementById('cy'),
+			ready : function() {
+			},
+			style : [ {
+				selector : 'node',
+				css : {
+					'content' : 'data(name)',
+					'text-valign' : 'center',
+					'color' : 'white',
+					'text-outline-width' : 4,
+					'text-outline-color' : '#999',
+					'width' : 40,
+					'height' : 40
+				}
+			},
+			{
+				selector : 'edge',
+				css : {
+					'line-color' : '#888',
+					'target-arrow-color' : '#333',
+					'source-arrow-color' : '#333',
+					'target-arrow-shape' : 'triangle',
+					'width' : 2,
+				}
+			},
+			// custom classes
+			{
+				selector : '.selected-node',
+				css : {
+					'border-color' : '#f00',
+					'border-width' : '2px'
+				}
+			}, {
+				selector : '.tool-node',
+				css : {
+					'font-family' : 'FontAwesome',
+					'font-size' : '3em',
+				}
+			}, {
+				selector : '.node-start',
+				css : {
+					'content' : '\uf090'
+				}
+			}, {
+				selector : '.node-end',
+				css : {
+					'content' : '\uf011'
+				}
+			}, {
+				selector : '.node-condition',
+				css : {
+					'content' : '\uf0e8'
+				}
+			},
+			//              {
+			//                  selector: '.node-result',
+			//                  css: {
+			//                      'content': '\uf24a'
+			//                  }
+			//              },
+			{
+				selector : '.node-processing',
+				css : {
+					'content' : '\uf085'
+				}
+			},
+			//              {
+			//                  selector: '.node-extract',
+			//                  css: {
+			//                      'content': '\uf1fb'
+			//                  }
+			//              },
+			//              {
+			//                  selector: '.node-storeDatabase',
+			//                  css: {
+			//                      'content': '\uf1c0'
+			//                  }
+			//              },
+			{
+				selector : '.NodeClass1',
+				style : {
+					'shape' : 'roundrectangle',
+					'text-valign' : 'top',
+					'background-color' : '#ccc',
+					'background-opacity' : 0.333,
+					'color' : '#888',
+					'text-outline-width' : 0,
+					'font-size' : 25
+				}
+			},
+
+			{
+				selector : '.NodeClass2',
+				style : {
+					'shape' : 'roundrectangle',
+					'text-valign' : 'top',
+					'background-color' : '#ccc',
+					'background-opacity' : 0.333,
+					'color' : '#888',
+					'text-outline-width' : 0,
+					'font-size' : 25
+				}
+			},
+
+			{
+				selector : '.NodeClass3',
+				style : {
+					'shape' : 'roundrectangle',
+					'text-valign' : 'top',
+					'background-color' : '#ccc',
+					'background-opacity' : 0.333,
+					'color' : '#888',
+					'text-outline-width' : 0,
+					'font-size' : 25
+				}
+			}, {
+				selector : '#rootNode',
+				style : {
+					'background-opacity' : 0,
+					'border-width' : 1,
+					'border-color' : '#aaa',
+					'border-opacity' : 0.5,
+					'font-size' : 50,
+					'padding-top' : 40,
+					'padding-left' : 40,
+					'padding-bottom' : 40,
+					'padding-right' : 40
+				}
+			} ],
+
+			elements : jQuery.parseJSON(JSON.stringify(rootNode)),
+		});
+
+		//#endregion
+		cy.cxtmenu({
+			selector : 'node',
+
+			commands : [ {
+				content : '루트로 열기',
+				select : function() {
+					getData(this.id(), this.data('name'), 0);
+				}
+			}, {
+				content : '처음으로',
+				select : function() {
+					init();
+				}
+			}, {
+				content : '열기',
+				select : function() {
+
+				}
+			}, {
+				content : '닫기',
+				select : function() {
+
+				}
+			}, {
+				content : '닫기12',
+				select : function() {
+
+				}
+			}, {
+				content : '보고서로이동',
+				select : function() {
+					document.location.href("http://www.naver.com");
+				}
+			} ]
+		});
+
+		var options = {
+			name : 'cose',
+			// Called on `layoutready`
+			ready : function() {
+			},
+			// Called on `layoutstop`
+			stop : function() {
+			},
+			// Whether to animate while running the layout
+			animate : true,
+			// The layout animates only after this many milliseconds
+			// (prevents flashing on fast runs)
+			animationThreshold : 250,
+			// Number of iterations between consecutive screen positions update
+			// (0 -> only updated on the end)
+			refresh : 20,
+			// Whether to fit the network view after when done
+			fit : true,
+			// Padding on fit
+			padding : 30,
+			// Constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+			boundingBox : undefined,
+			// Extra spacing between components in non-compound graphs
+			componentSpacing : 100,
+			// Node repulsion (non overlapping) multiplier
+			nodeRepulsion : function(node) {
+				return 400000;
+			},
+			// Node repulsion (overlapping) multiplier
+			nodeOverlap : 10,
+			// Ideal edge (non nested) length
+			idealEdgeLength : function(edge) {
+				return 10;
+			},
+			// Divisor to compute edge forces
+			edgeElasticity : function(edge) {
+				return 100;
+			},
+			// Nesting factor (multiplier) to compute ideal edge length for nested edges
+			nestingFactor : 5,
+			// Gravity force (constant)
+			gravity : 80,
+			// Maximum number of iterations to perform
+			numIter : 1000,
+			// Initial temperature (maximum node displacement)
+			initialTemp : 200,
+			// Cooling factor (how the temperature is reduced between consecutive iterations
+			coolingFactor : 0.95,
+			// Lower temperature threshold (below this point the layout will end)
+			minTemp : 1.0,
+			// Whether to use threading to speed up the layout
+			useMultitasking : true
+		};
+		cy.layout(options);
+	}
+
+	function getCytoscapeRootNode(rootId, rootName, depth) {
+		var fullUrl = "/zPortal/visualization/cytoscape.do";
+
+		$.ajax({
+			url : fullUrl,
+			type : "POST",
+			data : {
+				rootId : rootId,
+				rootName : rootName,
+				depth : depth
+			},
+			contentType : "application/json; charset=utf-8",
+			dataType : 'json',
+			beforeSend : function() {
+			},
+			success : function(data) {
+				var cy = window.cy = cytoscape({
+
+					container : document.getElementById('cy'),
+
+					ready : function() {
+
+					},
+
+					style : [ {
+						selector : 'node',
+						css : {
+							'content' : 'data(name)',
+							'text-valign' : 'center',
+							'color' : 'white',
+							'text-outline-width' : 4,
+							'text-outline-color' : '#999',
+							'width' : 20,
+							'height' : 20
+						}
+					},
+
+					{
+						selector : 'edge',
+						css : {
+							'line-color' : '#888',
+							'target-arrow-color' : '#333',
+							'source-arrow-color' : '#333',
+							'target-arrow-shape' : 'triangle',
+							'width' : 2,
+						}
+					},
+
+					// custom classes
+					{
+						selector : '.selected-node',
+						css : {
+							'border-color' : '#f00',
+							'border-width' : '2px'
+						}
+					}, {
+						selector : '.tool-node',
+						css : {
+							'font-family' : 'FontAwesome',
+							'font-size' : '3em',
+						}
+					}, {
+						selector : '.node-start',
+						css : {
+							'content' : '\uf090'
+						}
+					}, {
+						selector : '.node-end',
+						css : {
+							'content' : '\uf011'
+						}
+					}, {
+						selector : '.node-condition',
+						css : {
+							'content' : '\uf0e8'
+						}
+					},
+					// 	                {
+					// 	                    selector: '.node-result',
+					// 	                    css: {
+					// 	                        'content': '\uf24a'
+					// 	                    }
+					// 	                },
+					{
+						selector : '.node-processing',
+						css : {
+							'content' : '\uf085'
+						}
+					},
+					// 	                {
+					// 	                    selector: '.node-extract',
+					// 	                    css: {
+					// 	                        'content': '\uf1fb'
+					// 	                    }
+					// 	                },
+					// 	                {
+					// 	                    selector: '.node-storeDatabase',
+					// 	                    css: {
+					// 	                        'content': '\uf1c0'
+					// 	                    }
+					// 	                },
+					{
+						selector : '.NodeClass1',
+						style : {
+							'shape' : 'roundrectangle',
+							'text-valign' : 'top',
+							'background-color' : '#ccc',
+							'background-opacity' : 0.333,
+							'color' : '#888',
+							'text-outline-width' : 0,
+							'font-size' : 25
+						}
+					},
+
+					{
+						selector : '.NodeClass2',
+						style : {
+							'shape' : 'roundrectangle',
+							'text-valign' : 'top',
+							'background-color' : '#ccc',
+							'background-opacity' : 0.333,
+							'color' : '#888',
+							'text-outline-width' : 0,
+							'font-size' : 25
+						}
+					},
+
+					{
+						selector : '.NodeClass3',
+						style : {
+							'shape' : 'roundrectangle',
+							'text-valign' : 'top',
+							'background-color' : '#ccc',
+							'background-opacity' : 0.333,
+							'color' : '#888',
+							'text-outline-width' : 0,
+							'font-size' : 25
+						}
+					}, {
+						selector : '#rootNode',
+						style : {
+							'background-opacity' : 0,
+							'border-width' : 1,
+							'border-color' : '#aaa',
+							'border-opacity' : 0.5,
+							'font-size' : 50,
+							'padding-top' : 40,
+							'padding-left' : 40,
+							'padding-bottom' : 40,
+							'padding-right' : 40
+						}
+					} ],
+
+					elements : jQuery.parseJSON(data),
+				});
+
+				//#endregion
+				cy.cxtmenu({
+					selector : 'node',
+
+					commands : [ {
+						content : '루트로 열기',
+						select : function() {
+							getCytoscapeRootNode(this.id(), this.data('name'), 0);
+						}
+					}, {
+						content : '처음으로',
+						select : function() {
+							init();
+						}
+					}, {
+						content : '열기',
+						select : function() {
+
+						}
+					}, {
+						content : '닫기',
+						select : function() {
+
+						}
+					}, {
+						content : '닫기12',
+						select : function() {
+
+						}
+					}, {
+						content : '보고서로이동',
+						select : function() {
+							document.location.href("http://www.naver.com");
+						}
+					} ]
+				});
+
+				var options = {
+					name : 'cose',
+					// Called on `layoutready`
+					ready : function() {
+					},
+					// Called on `layoutstop`
+					stop : function() {
+					},
+					// Whether to animate while running the layout
+					animate : true,
+					// The layout animates only after this many milliseconds
+					// (prevents flashing on fast runs)
+					animationThreshold : 250,
+					// Number of iterations between consecutive screen positions update
+					// (0 -> only updated on the end)
+					refresh : 20,
+					// Whether to fit the network view after when done
+					fit : true,
+					// Padding on fit
+					padding : 30,
+					// Constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+					boundingBox : undefined,
+					// Extra spacing between components in non-compound graphs
+					componentSpacing : 100,
+					// Node repulsion (non overlapping) multiplier
+					nodeRepulsion : function(node) {
+						return 400000;
+					},
+					// Node repulsion (overlapping) multiplier
+					nodeOverlap : 10,
+					// Ideal edge (non nested) length
+					idealEdgeLength : function(edge) {
+						return 10;
+					},
+					// Divisor to compute edge forces
+					edgeElasticity : function(edge) {
+						return 100;
+					},
+					// Nesting factor (multiplier) to compute ideal edge length for nested edges
+					nestingFactor : 5,
+					// Gravity force (constant)
+					gravity : 80,
+					// Maximum number of iterations to perform
+					numIter : 1000,
+					// Initial temperature (maximum node displacement)
+					initialTemp : 200,
+					// Cooling factor (how the temperature is reduced between consecutive iterations
+					coolingFactor : 0.95,
+					// Lower temperature threshold (below this point the layout will end)
+					minTemp : 1.0,
+					// Whether to use threading to speed up the layout
+					useMultitasking : true
+				};
+
+				//	 				var options = {
+				//	 				  name: 'breadthfirst',
+
+				//	 				  fit: true, // whether to fit the viewport to the graph
+				//	 				  directed: false, // whether the tree is directed downwards (or edges can point in any direction if false)
+				//	 				  padding: 30, // padding on fit
+				//	 				  circle: false, // put depths in concentric circles if true, put depths top down if false
+				//	 				  spacingFactor: 1.75, // positive spacing factor, larger => more space between nodes (N.B. n/a if causes overlap)
+				//	 				  boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+				//	 				  avoidOverlap: true, // prevents node overlap, may overflow boundingBox if not enough space
+				//	 				  roots: undefined, // the roots of the trees
+				//	 				  maximalAdjustments: 0, // how many times to try to position the nodes in a maximal way (i.e. no backtracking)
+				//	 				  animate: false, // whether to transition the node positions
+				//	 				  animationDuration: 500, // duration of animation in ms if enabled
+				//	 				  animationEasing: undefined, // easing of animation if enabled
+				//	 				  ready: undefined, // callback on layoutready
+				//	 				  stop: undefined // callback on layoutstop
+				//	 				};
+
+				cy.layout(options);
+			},
+			error : function(request, status, error) {
+				alert("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
+			}
+
+		});
+	}
+
+	//#region node tools
+	function addStartToGraph(e) {
+		addObject(e, addStartToGraph);
+	}
+
+	function addendToGraph(e) {
+		addObject(e, addendToGraph);
+	}
+
+	function addConditionToGraph(e) {
+		addObject(e, addConditionToGraph);
+	}
+
+	function addResultToGraph(e) {
+		addObject(e, addResultToGraph);
+	}
+
+	function addProcessingToGraph(e) {
+		addObject(e, addProcessingToGraph);
+	}
+
+	function addExtractToGraph(e) {
+		addObject(e, addExtractToGraph);
+	}
+
+	function addStoreDatabaseToGraph(e) {
+		addObject(e, addStoreDatabaseToGraph);
+	}
+
+	function addAssetToGraph(e) {
+		addObject(e, addAssetToGraph);
+	}
+
+	function addObject(e, action) {
+		if (!e.data.canPerform(e, action)) {
+			return;
+		}
+
+		var toolIndexes = e.data.data.selectedTool;
+		var tool = e.data.data.options.tools[toolIndexes[0]][toolIndexes[1]];
+
+		var object = {
+			group : 'nodes',
+			data : {
+				name : tool.options.text
+			},
+			position : {
+				x : e.cyPosition.x,
+				y : e.cyPosition.y
+			}
+		}
+
+		e.cy.add(object).addClass('tool-node').addClass(tool.options.clazz);
+	}
+	//#endregion
+
+	//#region linking
+	var src;
+	function performLink(e) {
+		if (!e.data.canPerform(e, performLink)) {
+			return;
+		}
+
+		if (src) {
+			tgt = e.cyTarget;
+
+			e.cy.add({
+				group : "edges",
+				data : {
+					source : src.id(),
+					target : tgt.id()
+				}
+			});
+
+			src.removeClass('selected-node');
+			src = undefined;
+		} else {
+			src = e.cyTarget;
+			src.addClass('selected-node');
+		}
+	}
+
+	function getLinkName(src, tgt) {
+		return src.id() + "->" + tgt.id();
+	}
+	//#endregion
+
+	//#region Remove
+	function performRemove(e) {
+		if (!e.data.canPerform(e, performRemove)) {
+			return;
+		}
+
+		cy.remove(e.cyTarget);
+	}
+</script>
+
+</html>
