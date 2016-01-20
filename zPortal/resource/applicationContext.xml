@@ -33,86 +33,87 @@
 		<property name="cacheSeconds" value="180" />
 	</bean>
 	
-	<context:component-scan base-package="com.zetta.menu" />
-	<context:component-scan base-package="com.zetta.userInfo" />
-	<context:component-scan base-package="com.zetta.dept" />
-	<context:component-scan base-package="com.zetta.group" />
-	<context:component-scan base-package="com.zetta.menuGroup" />
-	<context:component-scan base-package="com.zetta.notice" />
-	<context:component-scan base-package="com.zetta.board" />
-	<context:component-scan base-package="com.zetta.faq" />
-	<context:component-scan base-package="com.zetta.qna" />	
-	<context:component-scan base-package="com.zetta.security" />
-	<context:component-scan base-package="com.zetta.comment" />
-	<context:component-scan base-package="com.zetta.setMain" />	
-	<context:component-scan base-package="com.zetta.qlikview" />
-	<context:component-scan base-package="com.zetta.fileUpload" />
+<!-- 	<context:component-scan base-package="com.zetta.menu" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.userInfo" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.dept" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.group" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.menuGroup" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.notice" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.board" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.faq" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.qna" />	 -->
+<!-- 	<context:component-scan base-package="com.zetta.security" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.comment" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.setMain" />	 -->
+<!-- 	<context:component-scan base-package="com.zetta.qlikview" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.fileUpload" /> -->
 <!--     <context:component-scan base-package="com.zetta.fileDownload" /> -->
-	<context:component-scan base-package="com.zetta.bookMark" />
-	<context:component-scan base-package="com.zetta.report" />
-	<context:component-scan base-package="com.zetta.log" />
-	<context:component-scan base-package="com.init.getData" />
-	<context:component-scan base-package="com.init.setData" />
-	<context:component-scan base-package="com.zetta.sso" />
-	<context:component-scan base-package="com.zetta.siteMap"/>
-	<context:component-scan base-package="com.zetta.intro" />
-	<context:component-scan base-package="com.zetta.pdf" />
-	<context:component-scan base-package="com.zetta.search" />
-	<context:component-scan base-package="com.zetta.history" />
-	<context:component-scan base-package="com.zetta.etlJob" />
-	<context:component-scan base-package="com.zetta.indexSearch" />
-	<context:component-scan base-package="com.zetta.publicLink" />
+<!-- 	<context:component-scan base-package="com.zetta.bookMark" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.report" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.log" /> -->
+<!-- 	<context:component-scan base-package="com.init.getData" /> -->
+<!-- 	<context:component-scan base-package="com.init.setData" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.sso" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.siteMap"/> -->
+<!-- 	<context:component-scan base-package="com.zetta.intro" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.pdf" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.search" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.history" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.etlJob" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.indexSearch" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.publicLink" /> -->
 	<context:component-scan base-package="com.zetta.visualization" />
+	<context:component-scan base-package="com.zetta.dataSource" />
 	
 	<mvc:annotation-driven />
 
-   <util:properties id="qvconf" location="/WEB-INF/classes/qlikview.properties" />
-   <util:properties id="sqlquery" location="/WEB-INF/classes/oracleQuery.xml" />
-	<context:property-placeholder location="/WEB-INF/classes/config.properties" />	
-	<tx:annotation-driven transaction-manager="transactionManager" />
-	<bean id="transactionManager"
-		class="org.springframework.orm.hibernate4.HibernateTransactionManager"	p:sessionFactory-ref="sessionFactory" />
-	<bean id="sessionFactory"
-		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
-		<property name="dataSource" ref="dataSource" />
-		<property name="hibernateProperties">
-			<props>
-				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
-				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+<!--    <util:properties id="qvconf" location="/WEB-INF/classes/qlikview.properties" /> -->
+<!--    <util:properties id="sqlquery" location="/WEB-INF/classes/oracleQuery.xml" /> -->
+<!-- 	<context:property-placeholder location="/WEB-INF/classes/config.properties" />	 -->
+<!-- 	<tx:annotation-driven transaction-manager="transactionManager" /> -->
+<!-- 	<bean id="transactionManager" -->
+<!-- 		class="org.springframework.orm.hibernate4.HibernateTransactionManager"	p:sessionFactory-ref="sessionFactory" /> -->
+<!-- 	<bean id="sessionFactory" -->
+<!-- 		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"> -->
+<!-- 		<property name="dataSource" ref="dataSource" /> -->
+<!-- 		<property name="hibernateProperties"> -->
+<!-- 			<props> -->
+<!-- 				<prop key="hibernate.dialect">${hibernate.dialect}</prop> -->
+<!-- 				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop> -->
 <!-- 	        <prop key="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto}</prop>  -->
-				<prop key="hibernate.default_schema">${hibernate.defaultschema}</prop>
+<!-- 				<prop key="hibernate.default_schema">${hibernate.defaultschema}</prop> -->
 <!-- 				<prop key="hibernate.jdbc.batch_size">${hibernate.batch_size}</prop> -->
-                <prop key="hibernate.default_batch_fetch_size">${hibernate.batch_size}</prop>  
+<!--                 <prop key="hibernate.default_batch_fetch_size">${hibernate.batch_size}</prop>   -->
 <!--                 <prop key="hibernate.order_inserts" >true</prop> -->
 <!--                  <prop key="hibernate.order_updates">true</prop> -->
-			</props>
-		</property>
-      <property name="packagesToScan" > 
-      	<list>
-      		<value>com.zetta.menu.model</value>
-      		<value>com.zetta.userInfo.model</value>
-      		<value>com.zetta.group.model</value>
-      		<value>com.zetta.dept.model</value>
-      		<value>com.zetta.notice.model</value>
-      		<value>com.zetta.board.model</value>
-      		<value>com.zetta.faq.model</value>
-      		<value>com.zetta.qna.model</value>
-      		<value>com.zetta.setMain.model</value>
-      		<value>com.zetta.security.model</value>
-      		<value>com.zetta.comment.model</value>
-      		<value>com.zetta.fileUpload.model</value>
-      		<value>com.zetta.bookMark.model</value>
-      		<value>com.zetta.log.model</value>
-      		<value>com.zetta.qlikview.model</value>
-      		<value>com.zetta.menuGroup.model</value>
-      		<value>com.zetta.history.model</value>
-      	</list>
-     </property> 	
-	</bean>
-	<bean id="dataSource"
-		class="org.springframework.jdbc.datasource.DriverManagerDataSource"
-		p:driverClassName="${jdbc.driverClassName}" p:url="${jdbc.url}"
-		p:username="${jdbc.username}" p:password="${jdbc.password}" />
+<!-- 			</props> -->
+<!-- 		</property> -->
+<!--       <property name="packagesToScan" >  -->
+<!--       	<list> -->
+<!--       		<value>com.zetta.menu.model</value> -->
+<!--       		<value>com.zetta.userInfo.model</value> -->
+<!--       		<value>com.zetta.group.model</value> -->
+<!--       		<value>com.zetta.dept.model</value> -->
+<!--       		<value>com.zetta.notice.model</value> -->
+<!--       		<value>com.zetta.board.model</value> -->
+<!--       		<value>com.zetta.faq.model</value> -->
+<!--       		<value>com.zetta.qna.model</value> -->
+<!--       		<value>com.zetta.setMain.model</value> -->
+<!--       		<value>com.zetta.security.model</value> -->
+<!--       		<value>com.zetta.comment.model</value> -->
+<!--       		<value>com.zetta.fileUpload.model</value> -->
+<!--       		<value>com.zetta.bookMark.model</value> -->
+<!--       		<value>com.zetta.log.model</value> -->
+<!--       		<value>com.zetta.qlikview.model</value> -->
+<!--       		<value>com.zetta.menuGroup.model</value> -->
+<!--       		<value>com.zetta.history.model</value> -->
+<!--       	</list> -->
+<!--      </property> 	 -->
+<!-- 	</bean> -->
+<!-- 	<bean id="dataSource" -->
+<!-- 		class="org.springframework.jdbc.datasource.DriverManagerDataSource" -->
+<!-- 		p:driverClassName="${jdbc.driverClassName}" p:url="${jdbc.url}" -->
+<!-- 		p:username="${jdbc.username}" p:password="${jdbc.password}" /> -->
 
 </beans>
 	

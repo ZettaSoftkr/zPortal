@@ -5,14 +5,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -20,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.zetta.menu.model.Menu;
-import com.zetta.menu.service.MenuService;
 import com.zetta.visualization.connector.MindMapConnector;
 import com.zetta.visualization.model.mindMap.MFont;
 import com.zetta.visualization.model.mindMap.MNode;
@@ -33,8 +29,8 @@ public class MindMapController {
 
 	public Logger logger = Logger.getLogger(getClass());
 
-	@Autowired
-	MenuService menuService;
+//	@Autowired
+//	MenuService menuService;
 
 	@RequestMapping(value = "/visualization/mindMap.do", method = RequestMethod.GET)
 	@ResponseBody
@@ -83,29 +79,30 @@ public class MindMapController {
 		int intoffset = 10;
 
 		
-		List<Menu> menuList = menuService.findAllList();
-
-		logger.info("전체 갯수 " + menuList.size());
-		for (int i = 0; i < menuList.size(); i++) {
-
-			HashMap<String, String> map = new HashMap<String, String>();
-
-			map.put("id", menuList.get(i).getBi_portal_menu_id());
-			map.put("parent", menuList.get(i).getBi_portal_menu_parent_id());
-			map.put("text", menuList.get(i).getBi_menu_nm());
-			map.put("bi_menu_url", menuList.get(i).getBi_menu_url_addr());
-			map.put("bi_menu_ordr", String.valueOf(menuList.get(i).getBi_menu_sort_sn()));
-			map.put("bi_menu_stle", menuList.get(i).getBi_menu_fm_yn());
-			//list.add(map);
-			if(menuList.get(i).getBi_portal_menu_parent_id().equals("#")){
-				intoffset = intoffset + 40;
-				MNode child = new MNode(menuList.get(i).getBi_portal_menu_id(), root.getId(), new MText(menuList.get(i).getBi_menu_nm() + ":" + menuList.get(i).getBi_portal_menu_parent_id(), 
-						new MFont("normal", "bold", "none", "20", "#000000")), 
-						new MOffset("100", String.valueOf(10 + intoffset)), false, "#000000",
-						nullList);
-				nodeList.add(child);
-			}
-		}
+//		List<Menu> menuList = menuService.findAllList();
+//		List<Menu> menuList = null;
+//
+//		logger.info("전체 갯수 " + menuList.size());
+//		for (int i = 0; i < menuList.size(); i++) {
+//
+//			HashMap<String, String> map = new HashMap<String, String>();
+//
+//			map.put("id", menuList.get(i).getBi_portal_menu_id());
+//			map.put("parent", menuList.get(i).getBi_portal_menu_parent_id());
+//			map.put("text", menuList.get(i).getBi_menu_nm());
+//			map.put("bi_menu_url", menuList.get(i).getBi_menu_url_addr());
+//			map.put("bi_menu_ordr", String.valueOf(menuList.get(i).getBi_menu_sort_sn()));
+//			map.put("bi_menu_stle", menuList.get(i).getBi_menu_fm_yn());
+//			//list.add(map);
+//			if(menuList.get(i).getBi_portal_menu_parent_id().equals("#")){
+//				intoffset = intoffset + 40;
+//				MNode child = new MNode(menuList.get(i).getBi_portal_menu_id(), root.getId(), new MText(menuList.get(i).getBi_menu_nm() + ":" + menuList.get(i).getBi_portal_menu_parent_id(), 
+//						new MFont("normal", "bold", "none", "20", "#000000")), 
+//						new MOffset("100", String.valueOf(10 + intoffset)), false, "#000000",
+//						nullList);
+//				nodeList.add(child);
+//			}
+//		}
 		
 		conn.setRootNode("0", "교통안전공단", root);
 		root.setChildren(nodeList);

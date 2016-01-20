@@ -2,16 +2,12 @@ package com.zetta.userInfo.model;
 
 import java.sql.Timestamp;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.zetta.common.DateTimeUtil;
-import com.zetta.dept.model.Dept;
 
 @Entity
 @Table(name = "PTL_TB_USER_D")
@@ -116,18 +112,6 @@ public class UserInfo {
 
 	public String getParseModifyDate() {
 		return DateTimeUtil.getParseDateTimestemp(getBi_updt_dt(), "yyyy-MM-dd");
-	}
-
-	@ManyToOne(cascade=CascadeType.ALL)
-	// @JoinColumn(name = "bi_dept_id", insertable = false, updatable = false)
-	// @ManyToOne(fetch=FetchType.LAZY)
-	@JoinColumn(name = "bi_dept_id", referencedColumnName = "bi_dept_id", nullable = false, insertable = false, updatable = false)
-	private Dept dept;
-
-	public String getBi_deptnm() {
-
-		return dept.getBi_deptnm();
-
 	}
 
 }

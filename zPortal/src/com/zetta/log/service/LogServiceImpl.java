@@ -8,12 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.zetta.common.DateTimeUtil;
 import com.zetta.log.dao.LogDAO;
 import com.zetta.log.model.LogFail;
-import com.zetta.log.model.LoginInfo;
 import com.zetta.log.model.LogInfo;
-import com.zetta.common.DateTimeUtil;
-import com.zetta.notice.model.Notice;
+import com.zetta.log.model.LoginInfo;
 
 
 @Service

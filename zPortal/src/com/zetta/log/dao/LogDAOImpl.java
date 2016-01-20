@@ -16,9 +16,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.zetta.log.model.LogFail;
-import com.zetta.log.model.LoginInfo;
 import com.zetta.log.model.LogInfo;
-import com.zetta.notice.model.Notice;
+import com.zetta.log.model.LoginInfo;
 
 @Repository
 @Transactional

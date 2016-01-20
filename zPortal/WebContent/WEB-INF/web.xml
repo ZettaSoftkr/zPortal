@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee"
-	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
-	id="WebApp_ID" version="3.0">
-	<display-name>portal</display-name>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+	<display-name>zPortal</display-name>
 	<welcome-file-list>
-		<welcome-file>/jsp/index.jsp</welcome-file>
+		<welcome-file>/index.html</welcome-file>
 	</welcome-file-list>
 	<servlet>
 		<servlet-name>dispatcher</servlet-name>
@@ -21,17 +19,16 @@
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
 	<!-- spring security event -->
-	<listener>
-		<listener-class>org.springframework.security.web.session.HttpSessionEventPublisher</listener-class>
-	</listener>
+	<!-- <listener> -->
+	<!-- <listener-class>org.springframework.security.web.session.HttpSessionEventPublisher</listener-class> -->
+	<!-- </listener> -->
 
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>
           /WEB-INF/dispatcher-servlet.xml
 	      /WEB-INF/classes/applicationContext.xml
-	      /WEB-INF/classes/spring-security-context.xml
-<!-- 	      /WEB-INF/classes/mybatisContext.xml -->
+<!-- 	      /WEB-INF/classes/spring-security-context.xml -->
 	 </param-value>
 	</context-param>
 	<filter>
@@ -50,27 +47,27 @@
 		<filter-name>Set Character Encoding</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-	<filter>
-		<filter-name>springSecurityFilterChain</filter-name>
-		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
-	</filter>
-	<filter-mapping>
-		<filter-name>springSecurityFilterChain</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
+	<!-- <filter> -->
+	<!-- <filter-name>springSecurityFilterChain</filter-name> -->
+	<!-- <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class> -->
+	<!-- </filter> -->
+	<!-- <filter-mapping> -->
+	<!-- <filter-name>springSecurityFilterChain</filter-name> -->
+	<!-- <url-pattern>/*</url-pattern> -->
+	<!-- </filter-mapping> -->
 	<error-page>
 		<error-code>404</error-code>
-		<location>/jsp/error/err404.jsp</location>
+		<location>/zPortal/error/err404.jsp</location>
 	</error-page>
 	<error-page>
 		<error-code>403</error-code>
-		<location>/jsp/error/err403.jsp</location>
+		<location>/zPortal/error/err403.jsp</location>
 	</error-page>
 	<error-page>
 		<error-code>500</error-code>
-		<location>/jsp/error/err500.jsp</location>
+		<location>/zPortal/error/err500.jsp</location>
 	</error-page>
-	
+
 	<session-config>
 		<session-timeout>60</session-timeout>
 	</session-config>

@@ -21,12 +21,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.zetta.common.BoardUtil;
 import com.zetta.common.DateTimeUtil;
-import com.zetta.menu.model.Menu;
-import com.zetta.menu.service.MenuService;
 import com.zetta.qlikview.model.QlikView;
 import com.zetta.qlikview.model.QlikViewLoginInfo;
 import com.zetta.qlikview.service.QlikViewService;
-import com.zetta.qlikview.utils.FilesUtils;
 
 import egovframework.com.utl.fcc.service.EgovStringUtil;
 
@@ -40,8 +37,6 @@ public class QlikViewController {
 	// 사용객체 선언(Spring DI)
 	@Autowired
 	QlikViewService qlikViewService;
-	@Autowired
-	MenuService menuService;
 
 	@RequestMapping(value = "/qlikview/gotoPage.do", method = RequestMethod.GET)
 	public ModelAndView gotoPage(

@@ -16,7 +16,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.zetta.group.model.Group;
 import com.zetta.security.model.Security;
 
 /**
@@ -73,13 +72,7 @@ public class SecurityDAOImpl implements SecurityDAO {
 		return security;
 	}
 	
-	
-	@SuppressWarnings("unchecked")
-	public Group getById(String bi_group_id) throws DataAccessException {
-		return (Group) sessionFactory.getCurrentSession().get(Group.class, bi_group_id);
-	}
-	
-	
+
 	
 	public int batchInsert(List<Security> list) throws HibernateException {
 		

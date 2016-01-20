@@ -21,8 +21,5 @@ public class CYRootNode {
 	}
 	public void setEdges(List<CYEdge> edges) {
 		this.edges = edges;
-	}    	
-    
-    
-    
+	}
 }
