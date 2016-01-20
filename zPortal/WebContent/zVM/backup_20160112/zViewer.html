@@ -1,0 +1,552 @@
+
+<!DOCTYPE html>
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8">
+<TITLE>zViewer</TITLE>
+<LINK type="text/css" rel="stylesheet" href="../assets/css/layout-default-1.3.3.css" />
+<LINK type="text/css" rel="stylesheet" href="../assets/css/jquery-ui.css" />
+<SCRIPT type="text/javascript" src="../assets/js/jquery-2.1.4.min.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="../assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="../assets/js/jquery.layout-1.4.4.js"></SCRIPT>
+<script src="model/zMRootNode.js"></script>
+<script src="model/zMenuLink.js"></script>
+<script src="model/zMenuNode.js"></script>
+<script src="model/zMenu.js"></script>
+<script src="model/zTree.js"></script>
+<script src="model/zOrg.js"></script>
+<link rel="stylesheet" href="../assets/css/menu.css">
+<link rel="stylesheet" href="../assets/css/topMenu.css">
+
+<style type="text/css">
+body {
+	color: #FFF;
+	background: #66C; /* color page so it can be seen */
+}
+
+.ui-layout-north, .ui-layout-south, .ui-layout-west, .ui-layout-east {
+	/*	NOTE: hiding an iframe may cause JS errors if the iframe page autoruns a script, so...
+		onopen: loadIframePage() == loads the *real* iframe page from "longdesc" attribute at 1st open */
+	display: none;
+	/*overflow: hidden;*/
+}
+
+iframe {
+	padding: 0 !important; /* iframes should not have padding */
+	overflow: auto !important;
+}
+
+/* color panes so they can be seen */
+.ui-layout-pane {
+	color: #000;
+	background: #EEE;
+}
+/* masks are usually transparent - make them visible (must 'override' default) */
+.ui-layout-mask {
+	background: #C00 !important;
+	opacity: .20 !important;
+	filter: alpha(opacity = 20) !important;
+}
+
+.ui-layout-south {
+	padding: 0; /* south pane is an iframe-container, so remove padding */
+}
+
+.ui-layout-west {
+	padding: 0; /* west pane has a scrolling content-div, so remove padding */
+}
+
+.ui-layout-west .ui-layout-content { /* Google IFRAME */
+	border-top: 1px solid #BBB;
+	border-bottom: 1px solid #BBB;
+}
+
+.ui-layout-west .header, .ui-layout-west .footer, .ui-layout-west p {
+	background: #EEE;
+	font-weight: bold;
+	text-align: center;
+	padding: 5px 10px;
+}
+
+.ui-layout-west .footer {
+	color: #FFF;
+	background: #777;
+}
+
+.ui-layout-west p { /* 2nd Footer: "Toggle South" */
+	background: #F9F9F9;
+	border: 4px outset #FFF;
+	margin: 7px;
+}
+
+
+.icon_zView {
+    background-image: url(/zPortal/zVM/images/icon/view.png) !important;
+    background-size: 100% 100%;
+    background-repeat: no-repeat; 
+    border: none;  
+
+}
+
+</style>
+
+<script type="text/javascript">
+
+	var menuKey = null;
+	var editMode = false;
+	
+	var rootNode = new zMRootNode();
+	var programInfos = null;
+	
+	var sendInfo = {
+		fileName : 'system',
+		objectKey : 'menu'
+	};
+	
+	function loadIframePage(pane, $Pane) {
+		if (!$Pane)
+			$Pane = $('.ui-layout-' + pane);
+		var $Iframe = $Pane.prop('tagName') == 'IFRAME' ? $Pane : $Pane.find('IFRAME:first');
+		if (!$Iframe.length)
+			return; // no iframe
+		var src = $Iframe.attr('src'), page = $Iframe.attr('longdesc');
+		if (page && src != page)
+			$Iframe.attr('src', page);
+	}
+
+	var myLayout;
+
+	$(document).ready(function() {
+		
+		editMode = $("#editMode").val();
+		$("#editMode").button().click( function(){
+				if($(this).val() == 'view'){
+// 					$(this).css('background-image','url(/zPortal/zVM/images/icon/edit.png) !important');
+					$(this).val('edit');
+					$(this).html('edit');
+				}
+				else
+				{
+// 					$(this).css('background-image','url(/zPortal/zVM/images/icon/view.png) !important');
+					$(this).val('view');
+					$(this).html('view');
+				}
+				
+				editMode = $("#editMode").val();
+			});
+		    
+		
+		//전체 레이아웃
+		myLayout = $("body").layout({
+			north__size : 50
+			,	north__spacing_closed:		20
+			,	north__togglerLength_closed:	100
+			,	north__togglerAlign_closed:	"left"
+			,	north__togglerContent_closed:"Top Menu"
+			,	north__togglerTip_closed:	"Open & Pin Menu"
+			,	north__sliderTip:			"Slide Open Menu"
+			,	north__slideTrigger_open:	"mouseover",
+			west__size : 220
+			,	west__spacing_closed:		20
+			,	west__togglerLength_closed:	100
+			,	west__togglerAlign_closed:	"top"
+			,	west__togglerContent_closed:"M<BR>E<BR>N<BR>U"
+			,	west__togglerTip_closed:	"Open & Pin Menu"
+			,	west__sliderTip:			"Slide Open Menu"
+			,	west__slideTrigger_open:	"mouseover",
+			north__minHeight : 50,
+			center__minWidth : '30%',
+			center__minHeight : 200,
+			center__minWidth : '30%',
+			spacing_closed : 16,
+			initClosed : false,
+			maskContents : true,
+			onopen : loadIframePage
+		});		
+		
+		
+		$.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/load.do",
+			dataType : "json",
+			success : function(msg) {
+				rootNode = rootNode.fromJson(msg);
+				//top---------------------------------------------------------------------------
+				var html = '<ul>';
+//		 		html += '<li><a href="#"><img src="../../assets/images/top/logo.jpg"/></a></li>';
+				html += '<li><a href=\'javascript:runMenu("","H","")\'><span>ZETTA Soft</span></a></li>';
+				html += makeTopHtml(rootNode, "#");
+				html += '</ul>';
+				document.getElementById("cssTopMenu").innerHTML = html;	
+				
+				$("#cssmenu").menumaker({
+				   title: "Menu",
+				   format: "multitoggle"
+				});		
+				//top---------------------------------------------------------------------------
+				
+				//left---------------------------------------------------------------------------
+				showLeft(menuKey);
+				//left---------------------------------------------------------------------------
+			},
+			error : function(request, status, error) {
+				alert("error:" + error);
+			},
+			data : sendInfo
+		});
+		
+		$.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/load.do",
+			dataType : "json",
+			success : function(msg) {
+				if (window.JSON && window.JSON.parse) {
+					try {
+						programInfos = JSON.parse(msg);
+				    } catch (d) {
+				    	alert("system에서 VProgramInfo 데이터를 로드할수 없습니다. error:" + d);
+				    }
+				}
+			},
+			error : function(request, status, error) {
+				alert("error:" + error);
+			},
+			data : {fileName:'system',objectKey:'VProgramInfo'}
+		});
+		
+	
+		(function getColor() {
+			var r, g, b;
+			var textColor = $('#cssmenu').css('color');
+			textColor = textColor.slice(4);
+			r = textColor.slice(0, textColor.indexOf(','));
+			textColor = textColor.slice(textColor.indexOf(' ') + 1);
+			g = textColor.slice(0, textColor.indexOf(','));
+			textColor = textColor.slice(textColor.indexOf(' ') + 1);
+			b = textColor.slice(0, textColor.indexOf(')'));
+			var l = rgbToHsl(r, g, b);
+			if (l > 0.7) {
+				$('#cssmenu>ul>li>a').css('text-shadow', '0 1px 1px rgba(0, 0, 0, .35)');
+				$('#cssmenu>ul>li>a>span').css('border-color', 'rgba(0, 0, 0, .35)');
+			}
+			else
+			{
+				$('#cssmenu>ul>li>a').css('text-shadow', '0 1px 0 rgba(255, 255, 255, .35)');
+				$('#cssmenu>ul>li>a>span').css('border-color', 'rgba(255, 255, 255, .35)');
+			}
+		})();
+
+		function rgbToHsl(r, g, b) {
+		    r /= 255, g /= 255, b /= 255;
+		    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+		    var h, s, l = (max + min) / 2;
+
+		    if(max == min){
+		        h = s = 0;
+		    }
+		    else {
+		        var d = max - min;
+		        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+		        switch(max){
+		            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+		            case g: h = (b - r) / d + 2; break;
+		            case b: h = (r - g) / d + 4; break;
+		        }
+		        h /= 6;
+		    }
+		    return l;
+		}
+	});
+	
+
+	function showPage(frameId, url){
+		alert(url);
+		parent.document.getElementById(frameId).src = url;
+	}
+	
+	
+	function makeMenuTree(rootNode, tree){
+		for (var i = 0; i < rootNode.linkDataArray.length; i++){
+			var link = rootNode.linkDataArray[i];
+			if(link.from == tree.value) {
+				var node = new zTree(link.to);
+				tree.addChild(makeMenuTree(rootNode, node), tree.value);
+			}
+		}		
+		return tree;
+	}
+
+
+	function findNode(currChild, value) {
+		if (currChild.value == value) {
+			return currChild;
+		} else if (currChild.children.length != 0) {
+			for (var i = 0; i < currChild.children.length; i++) {
+				if (currChild.children[i].value == value) {
+					return currChild.children[i];
+				} else {
+					findNode(currChild.children[i], value);
+				}
+			}
+			return null;
+		}
+		return null;
+	}
+
+	function getLeftMenuHtml(rootNode, currChild, html) {
+		if(currChild.children.length == 0){
+			return html;
+		}
+		else {
+			for (var i = 0; i < currChild.children.length; i++) {
+				if (i == 0) {					
+					dataNode = getDataNode(rootNode, currChild.children[i].value);
+					if(currChild.children[i].children.length == 0){
+						if(currChild.children.length==1){
+							html += '<li><a href=\'javascript:runMenu("' + dataNode.text + '","' + dataNode.data.menuTp + '","' + dataNode.data.dc + '")\'><span>' + dataNode.text + '</span></a></li>';
+							html += '</ul>';
+						}else{
+							html += '<li><a href=\'javascript:runMenu("' + dataNode.text + '","' + dataNode.data.menuTp + '","' + dataNode.data.dc + '")\'><span>' + dataNode.text + '</span></a></li>';
+						}
+					}
+					else
+					{
+						if(currChild.children.length == 1){
+							html += '<li class="has-sub"><a href=\'javascript:runMenu("' + dataNode.text+  '","' + dataNode.data.menuTp + '","' + dataNode.data.dc + '")\'><span>' + dataNode.text + '</span></a></li>';
+						}else{
+							html += '<li class="has-sub"><a href=\'javascript:runMenu("' + dataNode.text + '","' + dataNode.data.menuTp + '","' + dataNode.data.dc + '")\'><span>' + dataNode.text + '</span></a>';
+							html += '<ul>';
+						}
+					}
+					
+				}else{
+					var dataNode = getDataNode(rootNode, currChild.children[i].value);
+					if(i==currChild.children.length - 1){
+						if(currChild.children[i].children.length == 0){
+							html += '<li class="last"><a href=\'javascript:runMenu("' + dataNode.text+'","' + dataNode.data.menuTp + '","' + dataNode.data.dc + '")\'><span>' + dataNode.text + '</span></a></li>';
+							html += '</ul>';
+							html += '</li>';
+						}
+						else
+						{
+							html += '<li class="has-sub"><a href=\'javascript:runMenu("' + dataNode.text + '","' + dataNode.data.menuTp + '","' + dataNode.data.dc + '")\'><span>' + dataNode.text + '</span></a>';
+							html += '<ul>';
+						}
+					}else{
+						if(currChild.children[i].children.length == 0){
+							html += '<li class="last"><a href=\'javascript:runMenu("' + dataNode.text + '","' + dataNode.data.menuTp + '","' + dataNode.data.dc + '")\'><span>' + dataNode.text + '</span></a></li>';
+						}
+						else
+						{
+							html += '<li class="has-sub"><a href=\'javascript:runMenu("' + dataNode.text + '","' + dataNode.data.menuTp + '","' + dataNode.data.dc + '")\'><span>' + dataNode.text + '</span></a>';
+							html += '<ul>';
+						}
+					}
+				}
+
+				html = getLeftMenuHtml(rootNode, currChild.children[i], html);
+			}
+		}
+
+		return html;
+	}
+
+	function getDataNode(rootNode, key) {
+		for (var i = 0; i < rootNode.nodeDataArray.length; i++) {
+			if (rootNode.nodeDataArray[i].key == key) {
+				return rootNode.nodeDataArray[i];
+			}
+		}
+		return null;
+	}
+
+	function showLeft(key){
+		parent.myLayout.open('west');
+		
+		if(key!=null){
+			var treeRoot = new zTree(key);
+			var tree = makeMenuTree(rootNode, treeRoot);
+	
+			var html = '<ul>';
+			var rootMenu = getDataNode(rootNode, key);
+			
+			if(rootMenu != null){
+				html += '<li><a href="#"><span>' + rootMenu.text + '</span></a></li>';
+				html += getLeftMenuHtml(rootNode, tree, '');
+				html += '</ul>';
+			}else
+			{
+				html += '<li><a href="#"><span>메뉴없음</span></a></li>';
+				html += '</ul>';
+			}				
+			document.getElementById("cssmenu").innerHTML = html;
+	
+			$('#cssmenu li.has-sub>a').on('click', function(){
+				$(this).removeAttr('href');
+				var element = $(this).parent('li');
+				if (element.hasClass('open')) {
+					element.removeClass('open');
+					element.find('li').removeClass('open');
+					element.find('ul').slideUp();
+				}
+				else {
+					element.addClass('open');
+					element.children('ul').slideDown();
+					element.siblings('li').children('ul').slideUp();
+					element.siblings('li').removeClass('open');
+					element.siblings('li').find('li').removeClass('open');
+					element.siblings('li').find('ul').slideUp();
+				}
+			});
+	
+			$('#cssmenu>ul>li.has-sub>a').append('<span class="holder"></span>');
+		}
+		else parent.myLayout.close('west');
+		
+	}
+
+	function runMenu(text, menuTp, dc){
+		switch (menuTp) {
+			case 'R':
+				if(editMode == 'edit'){
+					document.getElementById('if_center').src = "/zPortal/zVM/zVM.html?fileName=" + text;
+				}
+				else{
+					document.getElementById('if_center').src = "/zPortal/zVM/zRViewer.html?fileName=" + text;
+				}
+				return;
+			case 'P':
+				showProgram('if_center', text);
+				return;
+			case 'F':
+				return;
+			case 'L':
+				document.getElementById('if_center').src = dc;
+				return;
+			case 'H':  //home
+				document.location.href = '/zPortal/zVM/zViewer.html';
+				return;
+			default:
+				alert('알수없는 메뉴입니다.\n 관리자에게 메뉴를 확인하세요.');
+				return;
+		}	
+	}
+	
+	function showProgram(frameId, name){
+		myLayout.close('west');
+		myLayout.close('north');
+		
+		var founed = false;
+		founded = programInfos.forEach(function (entry){
+			if(entry.text == name){
+				document.getElementById(frameId).src = entry.url;
+    			return true;
+    		}
+		});
+		
+// 		if(!founed) alert("정의되지 없는 프로그램입니다.");	
+	}
+
+	//1depth 만 해더로 만든다.
+	function makeTopHtml(rootNode, rootId){
+		var html = '';
+		for (var i = 0; i < rootNode.linkDataArray.length; i++){
+			var link = rootNode.linkDataArray[i]
+			if(link.from == rootId){
+				
+				var dataNode = getDataNode(rootNode, link.to);
+				if(dataNode.data.menuTp == 'F'){
+					html += '<li><a href="javascript:showLeft(\'' + dataNode.key + '\')"><span>' + dataNode.text + '</span></a></li>';
+				}
+				else{
+					html += '<li><a href="javascript:showProgram(\'if_center\',\'' + dataNode.text + '\')"><span>' + dataNode.text + '</span></a></li>';
+				}
+			}
+		}
+		return html;
+	}
+
+	function getDataNode(rootNode, key) {
+		for (var i = 0; i < rootNode.nodeDataArray.length; i++) {
+			if (rootNode.nodeDataArray[i].key == key) {
+				return rootNode.nodeDataArray[i];
+			}
+		}
+		return null;
+	}
+
+	$.fn.menumaker = function(options) {
+	    
+	    var cssmenu = $(this), settings = $.extend({
+	      title: "Menu",
+	      format: "dropdown",
+	      sticky: false
+	    }, options);
+	
+	    return this.each(function() {
+	      cssmenu.prepend('<div id="menu-button">' + settings.title + '</div>');
+	      $(this).find("#menu-button").on('click', function(){
+	        $(this).toggleClass('menu-opened');
+	        var mainmenu = $(this).next('ul');
+	        if (mainmenu.hasClass('open')) { 
+	          mainmenu.hide().removeClass('open');
+	        }
+	        else {
+	          mainmenu.show().addClass('open');
+	          if (settings.format === "dropdown") {
+	            mainmenu.find('ul').show();
+	          }
+	        }
+	      });
+	
+	      cssmenu.find('li ul').parent().addClass('has-sub');
+	
+	      multiTg = function() {
+	        cssmenu.find(".has-sub").prepend('<span class="submenu-button"></span>');
+	        cssmenu.find('.submenu-button').on('click', function() {
+	          $(this).toggleClass('submenu-opened');
+	          if ($(this).siblings('ul').hasClass('open')) {
+	            $(this).siblings('ul').removeClass('open').hide();
+	          }
+	          else {
+	            $(this).siblings('ul').addClass('open').show();
+	          }
+	        });
+	      };
+	
+	      if (settings.format === 'multitoggle') multiTg();
+	      else cssmenu.addClass('dropdown');
+	
+	      if (settings.sticky === true) cssmenu.css('position', 'fixed');
+	
+	      resizeFix = function() {
+	        if ($( window ).width() > 768) {
+	          cssmenu.find('ul').show();
+	        }
+	
+	        if ($(window).width() <= 768) {
+	          cssmenu.find('ul').hide().removeClass('open');
+	        }
+	      };
+	      resizeFix();
+	      return $(window).on('resize', resizeFix);
+	
+	    });
+	};
+	
+</script>
+
+</head>
+<body oncontextmenu="return false;">
+	<div id="if_north" class="pane ui-layout-north" scrolling="no">
+ 		<span id='cssTopMenu' style="width: 90%; float:left" scrolling="no"></span>
+ 		<span style="vertical-align: center; align:right ; padding: 0px; float:left; font-size:14px" scrolling="no">
+ 			<button id="editMode" value='view' >view</button>
+ 		</span>
+	</div>
+	<iframe id="if_center" class="pane ui-layout-center" src="/zPortal/zDashboard/main.html" frameborder="0" scrolling="auto"></iframe>
+	<div id="if_west" class="pane ui-layout-west">
+		<div id='cssmenu'></div>
+	</iframe>	
+</body>
+</html>

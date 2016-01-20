@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body oncontextmenu="return false;">
+</body>
+<script src="d3.min.js" type="text/javascript"></script>
+<script>
+
+var svg = d3.selectAll("body").append("svg")
+		.attr("width",500)
+		.attr("height",500)
+		.attr("style","outline: thin solid black;")
+		.append("g")
+		.attr("transform", "translate(20,20)");
+
+svg.append("rect")
+	.attr("width",500)
+	.attr("height",500)
+	.attr("fill","black");
+
+
+</script>

@@ -1,0 +1,763 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>ZettaSoft-Menu Manager</title>
+        <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+            <script src="../assets/js/go/go.js"></script>
+            
+            <script src="model/zMenuManager.js"></script>
+            <script src="model/zMRootNode.js"></script>
+            <script src="model/zMenuLink.js"></script>
+            <script src="model/zMenuNode.js"></script>
+            <script src="model/zMenu.js"></script>
+            
+            <link href="zVM.css" rel="stylesheet" type="text/css" />
+            <LINK type="text/css" rel="stylesheet" href="../assets/css/jquery-ui.css" />
+			<LINK type="text/css" rel="stylesheet" href="../assets/css/font-awesome/css/font-awesome.min.css" />
+			<SCRIPT type="text/javascript" src="../assets/js/jquery-2.1.4.min.js"></SCRIPT>
+			<SCRIPT type="text/javascript" src="../assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
+
+			<style>
+#toolbar {
+	padding: 2px;
+	display: inline-block;
+}
+/* support: IE7 */
+*+html #toolbar {
+	display: inline;
+}
+
+/* Allow Font Awesome Icons in lieu of jQuery UI and only apply when using a FA icon */
+.ui-icon[class*=" fa-"] {
+    background: none repeat scroll 0 0 transparent;
+    text-indent: 0; 
+    margin-top: -0.5em;
+}
+		
+			</style>
+            <script>
+    var $ = go.GraphObject.make;  
+    var menuManager = new zMenuManager(null, null);
+    
+	function layout() {
+		myDiagram.layoutDiagram(true);
+	}
+	
+	function init(){
+		
+		jQuery("#filters").buttonset();		
+		jQuery("#saveBtn4").button().click(function() {
+			runFilter();
+		});
+		jQuery("#saveBtn5").button().click(function() {
+			addedList();
+		});		
+		jQuery( "#saveBtn3" ).button().click(function() {
+			saveMenu();
+		});
+		jQuery( "#saveBtn6" ).button().click(function() {
+			showAllDiagram();
+		});
+		
+    // Common text styling
+	    function textStyle() {
+	      return {
+	        margin: 2
+	      }
+	    }
+    
+	    myFullDiagram = $(go.Diagram, "myFullDiagram",  // each diagram refers to its DIV HTML element by id
+	            {
+	              initialAutoScale: go.Diagram.Uniform,  // automatically scale down to show whole tree
+	              contentAlignment: go.Spot.Center,  // center the tree in the viewport
+	              isReadOnly: true,  // don't allow user to change the diagram
+	              layout: $(go.TreeLayout,
+	                        { angle: 90, sorting: go.TreeLayout.SortingAscending }),
+	            });
+	        myFullDiagram.nodeTemplate =$(go.Node, "Auto",
+		            { locationSpot: go.Spot.Center },
+		            new go.Binding("text", "key"),  // for sorting
+		            $(go.Shape, "RoundedRectangle",
+		              new go.Binding("fill", "color"),
+		              { stroke: "gray" }),
+		            $(go.TextBlock,
+		              { margin: 1 },
+		              new go.Binding("text", "key"))
+		          );
+
+	        myFullDiagram.linkTemplate = $(go.Link,
+		            { routing: go.Link.Normal, selectable: false },
+		            $(go.Shape,
+		              { strokeWidth: 1 })
+		          );;
+	    
+	    myDiagram = window.myDiagram =
+	        $(go.Diagram, "myDiagram",
+	          {
+	            // have mouse wheel events zoom in and out instead of scroll up and down
+	            "toolManager.mouseWheelBehavior": go.ToolManager.WheelZoom,
+	            allowDrop: true,  // support drag-and-drop from the Palette
+	  		  //initialAutoScale: go.Diagram.Uniform,
+	            "linkingTool.direction": go.LinkingTool.ForwardsOnly,
+	            initialContentAlignment: go.Spot.Center,
+	            layout: $(go.LayeredDigraphLayout, { isInitial: false, isOngoing: false, layerSpacing: 20 }),
+	            "undoManager.isEnabled": true
+	          });
+
+	    // when the document is modified, add a "*" to the title and enable the "Save" button
+	    myDiagram.addDiagramListener("Modified", function(e) {
+	      var button = document.getElementById("SaveButton");
+	      if (button) button.disabled = !myDiagram.isModified;
+	      var idx = document.title.indexOf("*");
+	      if (myDiagram.isModified) {
+	        if (idx < 0) document.title += "*";
+	      } else {
+	        if (idx >= 0) document.title = document.title.substr(0, idx);
+	      }
+	    });
+
+	    myDiagram.addDiagramListener("LinkDrawn", function(e) {
+	    	//menuManager.addModifyModel(e.subject.data, "addLink");
+	    	menuManager.fullDiagram.model.addLinkData(e.subject.data);
+	    });
+	    
+// 	    myDiagram.addDiagramListener("ObjectSingleClicked", function(e) {
+// 	        console.info("ObjectSingleClicked" + e.subject);
+// 	    });
+
+	    myDiagram.addDiagramListener("ExternalObjectsDropped", function(e) {
+	    	e.subject.each(function(node) {
+	            if((node instanceof go.Node)){
+	               //menuManager.addModifyModel(node.data,"addNode");
+	               menuManager.fullDiagram.model.addNodeData(node.data);
+	               openDataEdit(node.data);
+	        	}
+	        });	    
+	    });
+	    myDiagram.addDiagramListener("SelectionDeleted", function(e) {
+	        e.subject.each(function(node) {
+	            if((node instanceof go.Node)){
+	               //menuManager.addModifyModel(node.data,"deleteNode");
+	            	menuManager.fullDiagram.model.removeNodeData(node.data);
+	        	}
+	            if((node instanceof go.Link)){
+	            	//menuManager.addModifyModel(node.data, "deleteLink");
+	            	menuManager.fullDiagram.model.removeLinkData(node.data);
+	            }
+	        });	        
+	    });
+	    
+	    
+	    myDiagram.nodeTemplate = $(go.Node, "Auto", $(go.TextBlock, new go.Binding("text")) );
+	   	    
+	    // define the Node template
+		myDiagram.nodeTemplateMap.add("Comment",
+	    		$(go.Node, "Vertical",
+	    			{
+		              contextMenu:
+		                $(go.Adornment, "Spot",
+		                  $(go.Placeholder, { padding: 5 }),
+		                  $("ContextMenuButton", $(go.TextBlock, "  속 성   "),
+		                    { 
+		                	  click: function(e, obj) {
+		                		  openDataEdit(obj.part.data);
+				              }
+			                })
+		              	)
+		            },
+	    			new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+	    			$(go.Picture,
+    			        { desiredSize: new go.Size(30, 30),
+	    				portId: "", fromLinkable: true, toLinkable: true, cursor: "pointer"
+	    				},
+	     			    new go.Binding("source", "category", convertCategoryImage)),
+	    	        $(go.TextBlock, "주석", textStyle(),
+	    	          new go.Binding("text", "text"))
+	    	      )
+		    	);
+
+	    myDiagram.nodeTemplateMap.add("Folder",
+	    		$(go.Node, "Vertical",
+	    			{
+		              contextMenu:
+		                $(go.Adornment, "Spot",
+		                  $(go.Placeholder, { padding: 5 }),
+		                  $("ContextMenuButton", $(go.TextBlock, "  속 성   "),
+		                    { 
+		                	  click: function(e, obj) {
+		                		  openDataEdit(obj.part.data);
+				              }
+			                })
+		              	)
+		            },
+	    			new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+	    			$(go.Picture,
+    			        { desiredSize: new go.Size(30, 30),
+	    				portId: "", fromLinkable: true, toLinkable: true, cursor: "pointer"
+	    				},
+	     			    new go.Binding("source", "category", convertCategoryImage)),
+	    	        $(go.TextBlock, "폴더", textStyle(),
+	    	          new go.Binding("text", "text"))
+	    	      )
+		    	);
+
+	    myDiagram.nodeTemplateMap.add("Report",
+	    		$(go.Node, "Vertical",
+	    			{
+		              contextMenu:
+		                $(go.Adornment, "Spot",
+		                  $(go.Placeholder, { padding: 5 }),
+		                  $("ContextMenuButton", $(go.TextBlock, "  속 성   "),
+		                    { 
+		                	  click: function(e, obj) {
+		                		  openDataEdit(obj.part.data);
+				              }
+			                })
+		              	)
+		            },
+	    			new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+	    			$(go.Picture,
+    			        { desiredSize: new go.Size(30, 30),
+	    				portId: "", toLinkable: true, cursor: "pointer"
+	    				},
+	     			    new go.Binding("source", "category", convertCategoryImage)),
+	    	        $(go.TextBlock, "보고서", textStyle(),
+	    	          new go.Binding("text", "text"))
+	    	      )
+		    	);
+	    
+	    myDiagram.nodeTemplateMap.add("Program",
+    		$(go.Node, "Vertical",
+    			{
+	              contextMenu:
+	                $(go.Adornment, "Spot",
+	                  $(go.Placeholder, { padding: 5 }),
+	                  $("ContextMenuButton", $(go.TextBlock, "  속 성   "),
+	                    { 
+	                	  click: function(e, obj) {
+	                		  openDataEdit(obj.part.data);
+			              }
+		                })
+	              	)
+	            },
+    			new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+    			$(go.Picture,
+   			        { desiredSize: new go.Size(30, 30),
+    				portId: "", toLinkable: true, cursor: "pointer"
+    				},
+     			    new go.Binding("source", "category", convertCategoryImage)),
+    	        $(go.TextBlock, "프로그램", textStyle(),
+    	          new go.Binding("text", "text"))
+    	      )
+	    	);
+	    	
+	   
+	    myDiagram.nodeTemplateMap.add("Dashboard",
+	    		$(go.Node, "Vertical",
+	    			{
+		              contextMenu:
+		                $(go.Adornment, "Spot",
+		                  $(go.Placeholder, { padding: 5 }),
+		                  $("ContextMenuButton", $(go.TextBlock, "  속 성   "),
+		                    { 
+		                	  click: function(e, obj) {
+		                		  openDataEdit(obj.part.data);
+				              }
+			                })
+		              	)
+		            },
+	    			new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+	    			$(go.Picture,
+    			        { desiredSize: new go.Size(30, 30),
+	    				portId: "", toLinkable: true, cursor: "pointer"
+	    				},
+	     			    new go.Binding("source", "category", convertCategoryImage)),
+	    	        $(go.TextBlock, "대시보드", textStyle(),
+	    	          new go.Binding("text", "text"))
+	    	      )
+		    	);
+	    	
+	    myDiagram.nodeTemplateMap.add("Link",
+	    		$(go.Node, "Vertical",
+	    			{
+		              contextMenu:
+		                $(go.Adornment, "Spot",
+		                  $(go.Placeholder, { padding: 5 }),
+		                  $("ContextMenuButton", $(go.TextBlock, "  속 성   "),
+		                    { 
+		                	  click: function(e, obj) {
+		                		  openDataEdit(obj.part.data);
+				              }
+			                })
+		              	)
+		            },
+	    			new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+	    			$(go.Picture,
+    			        { desiredSize: new go.Size(30, 30),
+	    				portId: "", toLinkable: true, cursor: "pointer"
+	    				},
+	     			    new go.Binding("source", "category", convertCategoryImage)),
+	    	        $(go.TextBlock, "링크", textStyle(),
+	    	          new go.Binding("text", "text"))
+	    	      )
+		    	);
+	    
+	    myDiagram.nodeTemplateMap.add("Org",
+	    		$(go.Node, "Vertical",
+	    			{
+		              contextMenu:
+		                $(go.Adornment, "Spot",
+		                  $(go.Placeholder, { padding: 5 }),
+		                  $("ContextMenuButton", $(go.TextBlock, "  속 성   "),
+		                    { 
+		                	  click: function(e, obj) {
+		                		  openDataEdit(obj.part.data);
+				              }
+			                })
+		              	)
+		            },
+	    			new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+	    			$(go.Picture,
+	     			          { desiredSize: new go.Size(30, 30) },
+	     			          new go.Binding("source", "category", convertCategoryImage)),
+	    	        $(go.TextBlock, "조직", textStyle(),
+	    	          new go.Binding("text", "text"))
+	    	      )
+		    	);
+
+	    myDiagram.nodeTemplateMap.add("User",
+	    		$(go.Node, "Vertical",
+	    			{
+		              contextMenu:
+		                $(go.Adornment, "Spot",
+		                  $(go.Placeholder, { padding: 5 }),
+		                  $("ContextMenuButton", $(go.TextBlock, "  속 성   "),
+		                    { 
+		                	  click: function(e, obj) {
+		                		  openDataEdit(obj.part.data);
+				              }
+			                })
+		              	)
+		            },
+	    			new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+	    			$(go.Picture,
+    			        { desiredSize: new go.Size(30, 30),
+	    				portId: "", fromLinkable: true, toLinkable: true, cursor: "pointer"
+	    				},
+	     			    new go.Binding("source", "category", convertCategoryImage)),
+	    	        $(go.TextBlock, "사용자", textStyle(),
+	    	          new go.Binding("text", "text"))
+	    	      )
+		    	);
+	    
+	    myDiagram.nodeTemplateMap.add("UserGroup",
+	    		$(go.Node, "Vertical",
+	    			{
+		              contextMenu:
+		                $(go.Adornment, "Spot",
+		                  $(go.Placeholder, { padding: 5 }),
+		                  $("ContextMenuButton", $(go.TextBlock, "  속 성   "),
+		                    { 
+		                	  click: function(e, obj) {
+		                		  openDataEdit(obj.part.data);
+				              }
+			                })
+		              	)
+		            },
+	    			new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+	    			$(go.Picture,
+    			        { desiredSize: new go.Size(30, 30),
+	    				portId: "", fromLinkable: true, toLinkable: true, cursor: "pointer"
+	    				},
+	     			    new go.Binding("source", "category", convertCategoryImage)),
+	    	        $(go.TextBlock, "사용자그룹", textStyle(),
+	    	          new go.Binding("text", "text"))
+	    	      )
+		    	);
+	    
+	    myDiagram.nodeTemplateMap.add("MenuGroup",
+	    		$(go.Node, "Vertical",
+	    			{
+		              contextMenu:
+		                $(go.Adornment, "Spot",
+		                  $(go.Placeholder, { padding: 5 }),
+		                  $("ContextMenuButton", $(go.TextBlock, "  속 성   "),
+		                    { 
+		                	  click: function(e, obj) {
+		                		  openDataEdit(obj.part.data);
+				              }
+			                })
+		              	)
+		            },
+	    			new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+	    			$(go.Picture,
+   			          { 
+	    				desiredSize: new go.Size(30, 30),
+	    				portId: "", fromLinkable: true, toLinkable: true, cursor: "pointer"
+	    			  },
+   			          new go.Binding("source", "category", convertCategoryImage)),
+	    	        $(go.TextBlock, "매뉴그룹", textStyle(),
+	    	          new go.Binding("text", "text"))
+	    	      )
+		    	);
+	    
+	    // replace the default Link template in the linkTemplateMap
+	    myDiagram.linkTemplate =
+	    	$(go.Link,  // the whole link panel
+	   	        { curve: go.Link.Bezier, toShortLength: 2 },
+	   	        $(go.Shape,  // the link shape
+	   	          { strokeWidth: 1.5 }),
+	   	        $(go.Shape,  // the arrowhead
+	   	          { toArrow: "Standard", stroke: null })
+	   	      );
+
+	    myDiagram.linkTemplateMap.add("Link",
+	      $(go.Link, { selectable: false },
+	        $(go.Shape, { strokeWidth: 1, stroke: "darkgreen" })));
+	    
+	    var palette =
+	      $(go.Palette, "palette",  // create a new Palette in the HTML DIV element "palette"
+	        {
+	          // share the template map with the Palette
+	          nodeTemplateMap: myDiagram.nodeTemplateMap,
+	          autoScale: go.Diagram.Uniform  // everything always fits in viewport
+	        });
+
+	    palette.model.nodeDataArray = [
+	      {category: "Folder" },
+	      {category: "Program"},
+	      {category: "Report" },
+	      {category: "Dashboard" },
+	      {category: "Link" },
+	      {category: "UserGroup" },
+	      {category: "MenuGroup" },
+	      {category: "Comment"}
+	    ];
+	    
+	    var myOverview = $(go.Overview, "myOverview", {
+	        observed: myDiagram,
+	        maxScale: 0.5,
+	        contentAlignment: go.Spot.Center
+	    });
+	    // change color of viewport border in Overview
+	   myOverview.box.elt(0).stroke = "dodgerblue";		
+	   	   
+	   loadMenu();
+		
+	}//init()마지막
+	
+	function loadMenu(){
+		jQuery.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/load.do",
+			dataType : "json",
+			success : function(msg) {
+				myFullDiagram.model = go.Model.fromJson(msg);
+				menuManager.fullDiagram = myFullDiagram;
+				//필터후 모델을 보여준다.
+				runFilter();
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : {fileName:'system', objectKey:'menu'}
+		});
+	}
+	
+	function getTotalModel(){
+		var modifyModel = menuManager.modifyModel;
+		
+       	if(modifyModel.node.length != 0) {
+    		var model = new go.GraphLinkModel();
+        	model.nodeDataArray = menuManager.fullDiagram.model.nodeDataArray;
+        	model.linkDataArray = menuManager.fullDiagram.model.linkDataArray;
+        	
+        	//추가
+        	var addNodes = new Array();
+        	var addLinks = new Array();
+        	for(var index in modifyModel.types){
+        		switch (modifyModel.types[index]) {
+	        		case 'addNode':
+	        			model.addNodeDatapush(modifyModel.nodes[index]);
+	        			break;
+	        		case 'addLink':
+	        			addLinks.push(modifyModel.nodes[index]);
+	        			break;
+	        		default:
+	        			break;
+        		}
+        	}
+        	
+        	jQuery.merge(saveDataArray, addNodes);
+        	jQuery.merge(saveLinkArray, addLinks);
+        	
+        	//삭제
+        	for(var index in modifyModel.types){
+        		switch (modifyModel.types[index]) {
+	        		case 'deleteNode':
+	        			addNodes.push(modifyModel.nodes[index]);
+	        			break;
+	        		case 'deleteLink':
+	        			addNodes.push(modifyModel.nodes[index]);
+	        			break;
+	        		default:
+	        			break;
+        		}
+        	}
+	       	jQuery.merge(saveModel.linkDataArray, tempLink);
+	       	saveModel.linkDataArray = jQuery.unique(saveModel.linkDataArray);
+	    	console.info("new linkDataArray:" + JSON.stringify(tempLink));
+	    	jQuery.merge(saveModel.nodeDataArray, newDataNodes);	    	
+	    	return model;
+       	}
+       	
+		return menuManager.fullDiagram.model;
+	}
+	
+	function saveMenu() {
+		var sendInfo = {
+			fileName : "system",
+			objectKey : "menu",
+			content : getTotalModel().toJson()
+		};
+
+		jQuery.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/save.do",
+			dataType : "json",
+			success : function(msg) {
+				if (msg) {
+					alert("저장되었습니다.");
+				} else {
+					alert("저장할수 없습니다.");
+				}
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : sendInfo
+		});
+	}
+	
+	function uniquefyLink(links){
+		var newLinks = [];
+		for(var index in links){
+			var founded = false;
+			for(var newIndex in newLinks){
+				var comp1 = newLinks[newIndex].from + newLinks[newIndex].to;
+				var comp2 = links[index].from + links[index].to;
+				if(comp1 == comp2){
+					founded = true;
+				}
+			}
+			if (!founded) newLinks.push(links[index]);
+		}
+		return newLinks;
+	}
+	
+	//현재 화면에 출력된 내용을 그래도 저장함.
+	function showAllDiagram() {
+		myDiagram.model = menuManager.fullDiagram.model;
+		layout();
+	}
+	
+	function runFilter(){
+		var filters = [];
+		jQuery("#filters").children().each(function (){
+			if(this.type != 'checkbox'){
+				var value = jQuery("#" + this.id).attr("aria-pressed");
+				filters.push([this.id.split('_')[1], value]);
+			}
+		});
+		
+		var currentModel = menuManager.fullDiagram.model;
+		var filteredModel = new go.GraphLinksModel();
+		
+    	var filteredDataArray = null;
+    	var filteredLinkArray = null;
+    	
+    	//filters [[Folder,"true"], [] ...]
+    	for(var index in filters){
+    		var checkName = filters[index][0];
+    		var checkValue = filters[index][1];
+    		
+    		if(checkValue == 'true'){
+    			var temp = jQuery.grep(currentModel.nodeDataArray, function(entry) {
+					return ( entry.category == checkName);
+				});
+	        	
+    			console.info("temp:" + JSON.stringify(temp));
+	        	if(filteredDataArray == null) filteredDataArray = temp;
+	        	else jQuery.merge(filteredDataArray, temp);
+    		}
+    	}
+
+      	if(filteredDataArray != null){
+      		var tempLink = new Array();
+        	//to 링크를 넣는다.
+        	for(var i = 0 ; i < currentModel.linkDataArray.length ; i++){
+        		var link  = currentModel.linkDataArray[i];
+        		for(var j = 0 ; j < filteredDataArray.length ; j++){
+        			//from이 노드 인지 확인해야한다.
+        			if(findDataNode(filteredDataArray, link.from)){
+        				if(link.to == filteredDataArray[j].key) tempLink.push(link);
+        			}
+        		}
+        	}
+        	
+        	if(filteredLinkArray == null) filteredLinkArray = tempLink;
+        	else jQuery.merge(filteredLinkArray, tempLink);
+        	
+        	//중복이 일어날수 있다..따라서 Unique처리해줌.
+        	filteredLinkArray = jQuery.unique(filteredLinkArray);
+      		
+        	filteredModel.nodeDataArray = filteredDataArray;
+        	filteredModel.linkDataArray = filteredLinkArray;
+    		myDiagram.model = filteredModel;
+    		layout();
+    	}
+	}
+	
+	//해당 key값이 있는지 확인
+	function findDataNode(nodes, key){
+		for (index in nodes){
+			if(nodes[index].key.toString() == key.toString()) return true;
+		}
+		return false;
+	}
+	
+	function addedList(){
+		alert(JSON.stringify(menuManager.modifyModel));
+	}
+	
+	//데이터 오브젝트에 
+	function openDataEdit(obj) {
+		menuManager.currentNode = obj;
+		if(obj.data == null){
+			var model =  window.myDiagram.model;
+			model.setDataProperty(obj, "data", {});
+			document.getElementById("data_menuId").value = obj.key;
+			document.getElementById("data_menuNm").value = obj.text;
+			document.getElementById("data_sortSn").value = 1;
+			document.getElementById("data_dc").value = obj.text;
+		}else{
+			document.getElementById("data_menuId").value = obj.key;
+			document.getElementById("data_menuNm").value = obj.data.menuNm;
+			document.getElementById("data_sortSn").value = obj.data.sortSn;
+			document.getElementById("data_dc").value = obj.data.dc;
+		}
+		
+        myDiagram.startTransaction("openDataEdit");
+        myDiagram.selection.each(function(node) {
+            if (!(node instanceof go.Node))
+                return;
+        
+            var panel = document.getElementById("editDataSource");
+            panel.style.visibility = "visible";
+            
+        });
+        myDiagram.commitTransaction("openDataEdit");
+    }
+	
+	function saveDataSource(){
+		window.myDiagram.startTransaction("setSequenceLinkDefaultFlow");
+        var model =  window.myDiagram.model;
+        model.setDataProperty(menuManager.currentNode, "text", document.getElementById("data_menuNm").value);
+        model.setDataProperty(menuManager.currentNode, "data", {menuId : document.getElementById("data_menuId").value, 
+        											menuNm : document.getElementById("data_menuNm").value,
+        											menuTp : getMeneType(menuManager.currentNode.category),
+        											sortSn : document.getElementById("data_sortSn").value,
+        											dc : document.getElementById("data_dc").value
+        											});
+        window.myDiagram.commitTransaction("setSequenceLinkDefaultFlow");
+	}
+	
+	function closeElement(id) {
+	    var panel = document.getElementById(id);
+	    if (panel.style.visibility === "visible") {
+	        panel.style.visibility = "hidden";
+	    }
+	}
+	
+	function getMeneType(type){
+		switch (type) {
+			case "Folder":
+				return "F";
+			case "Program":
+				return "P";
+			case "Dashboard":
+				return "D";
+			case "Link":
+				return "L";
+			case "Report":
+				return "R";
+			default:
+				break;
+		}
+		return "F";
+	}
+	
+	function convertCategoryImage(category) {
+	   return "/zPortal/zVM/images/menu/" + category.toLowerCase() + ".png";
+	}
+	
+            </script>
+        </head>
+        <body onload="init();">
+        	<div style="width: 100%; white-space: nowrap;">
+				<div id="menuToolbar" class="ui-widget-header ui-corner-all">
+					<span id="filters">
+						<input type="checkbox" name="filter1" id="ck_Folder" ><label id="lb_Folder" class="ui-state-active" aria-pressed="true" for="ck_Folder">폴더</label></input>
+						<input type="checkbox" name="filter2" id="ck_Program" ><label id="lb_Program" class="ui-state-active" aria-pressed="true"  for="ck_Program">프로그램</label></input>
+						<input type="checkbox" name="filter3" id="ck_Report" ><label id="lb_Report" class="ui-state-active" aria-pressed="true"  for="ck_Report">보고서</label></input>
+						<input type="checkbox" name="filter4" id="ck_Link" ><label id="lb_Link" class="ui-state-active" aria-pressed="true"  for="ck_Link">링크</label></input>
+						<input type="checkbox" name="filter5" id="ck_UserGroup" ><label id="lb_UserGroup" aria-pressed="false"  for="ck_UserGroup">사용자그룹</label></input>
+						<input type="checkbox" name="filter6" id="ck_MenuGroup" ><label id="lb_MenuGroup" aria-pressed="false"  for="ck_MenuGroup">메뉴그룹</label></input>
+					</span>
+					<button id="saveBtn4" type="button" >실행</button>
+					<button id="saveBtn5" type="button" >추가된목록</button>
+					<span style="float:right">						
+						<button id="saveBtn3" type="button" >저장</button><button id="saveBtn6" type="button" >전체보기</button>
+					</span>
+					
+				</div>
+				<div style="width: 100%; white-space: nowrap;">
+                    <span style="display: inline-block; vertical-align: top; padding: 5px; width: 10%">
+                        <div id="palette" style="background-color: Snow; border: solid 1px gray; height: 330px"></div>
+                        <div class="handle">전체화면</div>
+                        <div id="myOverview"></div>
+                    </span>
+                    <span style="display: inline-block; vertical-align: top; padding: 5px; width: 89%">
+                        <div id="myDiagram" style="background-color: Snow; border: solid 1px gray; height: 500px; width: 100%"></div>
+                        <div id="myFullDiagram" style="height: 0px; width:0px; visibility: hidden"></div>
+                    </span>
+                </div>
+        	</div>
+            <!--  데이터 소스  -->
+			<div id="editDataSource" class="draggable">
+				<div id="editDataSourceHandle" class="handle">데이터 소스 편집</div>
+				<div>
+					<ul>
+						<li>
+							<span style="float:left">
+								<label for="data_menuId">ID</label><input type="text" id="data_menuId" >
+							</span>
+							<span style="float:left">
+								<label for="data_menuNm">이름</label><input type="text" id="data_menuNm" >
+							</span>
+							<br>
+							<span style="float:left">
+								<label for="data_sortSn">순서</label><input type="text" id="data_sortSn" >
+							</span>
+							<span style="float:left">
+								<label for="data_dc">설명</label><input type="text" id="data_dc" >
+							</span>
+						</li>
+						<li>
+							<button id="saveBtn3" class="elementBtn" type="button" onclick="saveDataSource()">저장</button><button id="cancelBtn2" class="elementBtn" type="button" onclick="closeElement('editDataSource')">닫기</button>
+						</li>
+					</ul>
+				</div>
+			</div>
+        </body>
+    </html>

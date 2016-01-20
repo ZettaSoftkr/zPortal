@@ -1,0 +1,591 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>ZettaSoft-Menu Manager</title>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type">
+<script src="../assets/js/go/go.js"></script>
+
+<script src="model/zMenuManager.js"></script>
+<script src="model/zMRootNode.js"></script>
+<script src="model/zMenuLink.js"></script>
+<script src="model/zMenuNode.js"></script>
+<script src="model/zMenu.js"></script>
+<script src="model/zOrg.js"></script>
+
+<link href="zVM.css" rel="stylesheet" type="text/css" />
+<LINK type="text/css" rel="stylesheet" href="../assets/css/jquery-ui.css" />
+<LINK type="text/css" rel="stylesheet" href="../assets/css/font-awesome/css/font-awesome.min.css" />
+<SCRIPT type="text/javascript" src="../assets/js/jquery-2.1.4.min.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="../assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
+
+<style>
+#toolbar {
+	padding: 2px;
+	display: inline-block;
+}
+/* support: IE7 */
+*+html #toolbar {
+	display: inline;
+}
+
+/* Allow Font Awesome Icons in lieu of jQuery UI and only apply when using a FA icon */
+.ui-icon[class*=" fa-"] {
+	background: none repeat scroll 0 0 transparent;
+	text-indent: 0;
+	margin-top: -0.5em;
+}
+</style>
+<script id="code">
+	var $ = go.GraphObject.make; // for conciseness in defining templates
+	var menuManager = new zMenuManager(null, null);
+	var rootId = "0000000";
+
+	function layout() {
+		myDiagram.layoutDiagram(true);
+	}
+
+	function showLocalOnLocalClick() {
+		var selectedLocal = myDiagram.selection.first();
+		if (selectedLocal !== null) {
+			myFullDiagram.select(myFullDiagram.findPartForKey(selectedLocal.data.key));
+		}
+	}
+
+	function init() {
+		jQuery("#depths").buttonset();
+		jQuery("#saveBtn4").button().click(function() {
+			runFilter();
+		});
+		jQuery("#saveBtn5").button().click(function() {
+			addedList();
+		});
+		jQuery("#saveBtn3").button().click(function() {
+			saveGroup();
+		});
+		jQuery("#saveBtn6").button().click(function() {
+			saveCurrentMenu();
+		});
+
+		// Common text styling
+		function textStyle() {
+			return {
+				margin : 2
+			}
+		}
+
+		myFullDiagram = $(go.Diagram, "myFullDiagram",  // each diagram refers to its DIV HTML element by id
+	            {
+	              initialAutoScale: go.Diagram.Uniform,  // automatically scale down to show whole tree
+	              contentAlignment: go.Spot.Center,  // center the tree in the viewport
+	              isReadOnly: true,  // don't allow user to change the diagram
+	              layout: $(go.TreeLayout,
+	                        { angle: 90, sorting: go.TreeLayout.SortingAscending }),
+	            });
+	        myFullDiagram.nodeTemplate =$(go.Node, "Auto",
+		            { locationSpot: go.Spot.Center },
+		            new go.Binding("text", "key"),  // for sorting
+		            $(go.Shape, "RoundedRectangle",
+		              new go.Binding("fill", "color"),
+		              { stroke: "gray" }),
+		            $(go.TextBlock,
+		              { margin: 1 },
+		              new go.Binding("text", "key"))
+		          );
+
+	        myFullDiagram.linkTemplate = $(go.Link,
+		            { routing: go.Link.Normal, selectable: false },
+		            $(go.Shape,
+		              { strokeWidth: 1 })
+		          );;
+		          
+
+		myDiagram = window.myDiagram = $(go.Diagram, "myDiagram", {
+			// have mouse wheel events zoom in and out instead of scroll up and down
+			"toolManager.mouseWheelBehavior" : go.ToolManager.WheelZoom,
+			allowDrop : true, // support drag-and-drop from the Palette
+			//initialAutoScale: go.Diagram.Uniform,
+			"linkingTool.direction" : go.LinkingTool.ForwardsOnly,
+			initialContentAlignment : go.Spot.Center,
+			layout : $(go.LayeredDigraphLayout, {
+				isInitial : false,
+				isOngoing : false,
+				layerSpacing : 20
+			}),
+			"undoManager.isEnabled" : true,
+			"ChangedSelection" : showLocalOnLocalClick
+		});
+
+		// when the document is modified, add a "*" to the title and enable the "Save" button
+		myDiagram.addDiagramListener("Modified", function(e) {
+			var button = document.getElementById("SaveButton");
+			if (button)
+				button.disabled = !myDiagram.isModified;
+			var idx = document.title.indexOf("*");
+			if (myDiagram.isModified) {
+				if (idx < 0)
+					document.title += "*";
+			} else {
+				if (idx >= 0)
+					document.title = document.title.substr(0, idx);
+			}
+		});
+
+		myDiagram.addDiagramListener("LinkDrawn", function(e) {
+			//menuManager.addModifyModel(e.subject.data, "addLink");
+			menuManager.fullDiagram.model.addLinkData(e.subject.data);
+		});
+
+		// 	    myDiagram.addDiagramListener("ObjectSingleClicked", function(e) {
+		// 	        console.info("ObjectSingleClicked" + e.subject);
+		// 	    });
+
+		myDiagram.addDiagramListener("ExternalObjectsDropped", function(e) {
+			e.subject.each(function(node) {
+				if ((node instanceof go.Node)) {
+					//menuManager.addModifyModel(node.data,"addNode");
+					menuManager.fullDiagram.model.addNodeData(node.data);
+					openDataEdit(node.data);
+				}
+			});
+		});
+		myDiagram.addDiagramListener("SelectionDeleted", function(e) {
+			e.subject.each(function(node) {
+				if ((node instanceof go.Node)) {
+					//menuManager.addModifyModel(node.data,"deleteNode");
+					menuManager.fullDiagram.model.removeNodeData(node.data);
+				}
+				if ((node instanceof go.Link)) {
+					//menuManager.addModifyModel(node.data, "deleteLink");
+					menuManager.fullDiagram.model.removeLinkData(node.data);
+				}
+			});
+		});
+
+		var defaultAdornment = $(go.Adornment, "Spot", $(go.Panel, "Auto", $(go.Shape, {
+			fill : null,
+			stroke : "dodgerblue",
+			strokeWidth : 4
+		}), $(go.Placeholder)));
+		
+		
+		myDiagram.nodeTemplate = $(go.Node, "Auto", $(go.TextBlock, new go.Binding("text")) );
+		myDiagram.nodeTemplateMap.add("dummy",$(go.Node, "Auto", $(go.TextBlock, new go.Binding("text"))));
+
+		myDiagram.nodeTemplateMap.add("Org", $(go.Node, "Vertical", {
+			contextMenu : $(go.Adornment, "Spot", $(go.Placeholder, {
+				padding : 5
+			}), $("ContextMenuButton", $(go.TextBlock, "  속 성   "), {
+				click : function(e, obj) {
+					openDataEdit(obj.part.data);
+				}
+			}))
+		}, new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify), $(go.Picture, {
+			desiredSize : new go.Size(30, 30),
+			portId : "",
+			fromLinkable : true,
+			toLinkable : true,
+			cursor : "pointer"
+		}, new go.Binding("source", "category", convertCategoryImage)), $(go.TextBlock, "조직", textStyle(),
+				new go.Binding("text", "text"))));
+
+		myDiagram.nodeTemplateMap.add("User", $(go.Node, "Vertical", {
+			contextMenu : $(go.Adornment, "Spot", $(go.Placeholder, {
+				padding : 5
+			}), $("ContextMenuButton", $(go.TextBlock, "  속 성   "), {
+				click : function(e, obj) {
+					openDataEdit(obj.part.data);
+				}
+			}))
+		}, new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify), $(go.Picture, {
+			desiredSize : new go.Size(30, 30),
+			portId : "",
+			fromLinkable : true,
+			toLinkable : true,
+			cursor : "pointer"
+		}, new go.Binding("source", "category", convertCategoryImage)), $(go.TextBlock, "사용자", textStyle(),
+				new go.Binding("text", "text"))));
+
+		myDiagram.nodeTemplateMap.add("UserGroup", $(go.Node, "Vertical", {
+			contextMenu : $(go.Adornment, "Spot", $(go.Placeholder, {
+				padding : 5
+			}), $("ContextMenuButton", $(go.TextBlock, "  속 성   "), {
+				click : function(e, obj) {
+					openDataEdit(obj.part.data);
+				}
+			}))
+		}, new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify), $(go.Picture, {
+			desiredSize : new go.Size(30, 30),
+			portId : "",
+			fromLinkable : true,
+			toLinkable : true,
+			cursor : "pointer"
+		}, new go.Binding("source", "category", convertCategoryImage)), $(go.TextBlock, "사용자그룹", textStyle(),
+				new go.Binding("text", "text"))));
+
+		// replace the default Link template in the linkTemplateMap
+		myDiagram.linkTemplate = $(go.Link, // the whole link panel
+		{
+			curve : go.Link.Bezier,
+			toShortLength : 2
+		}, $(go.Shape, // the link shape
+		{
+			strokeWidth : 1.5
+		}), $(go.Shape, // the arrowhead
+		{
+			toArrow : "Standard",
+			stroke : null
+		}));
+
+		myDiagram.linkTemplateMap.add("Link", $(go.Link, {
+			selectable : false
+		}, $(go.Shape, {
+			strokeWidth : 1,
+			stroke : "darkgreen"
+		})));
+
+		var palette = $(go.Palette, "palette", // create a new Palette in the HTML DIV element "palette"
+		{
+			// share the template map with the Palette
+			nodeTemplateMap : myDiagram.nodeTemplateMap,
+			autoScale : go.Diagram.Uniform
+		// everything always fits in viewport
+		});
+
+		palette.model.nodeDataArray = [ {
+			category : "Org"
+		}, {
+			category : "User"
+		}, {
+			category : "UserGroup"
+		} ];
+
+		var myOverview = $(go.Overview, "myOverview", {
+			observed : myDiagram,
+			maxScale : 0.5,
+			contentAlignment : go.Spot.Center
+		});
+		// change color of viewport border in Overview
+		myOverview.box.elt(0).stroke = "dodgerblue";
+
+		loadOrgs();
+		loadUsers();
+
+	}//init()마지막
+
+	function loadOrgs() {
+		jQuery.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/load.do",
+			dataType : "json",
+			success : function(msg) {
+				myFullDiagram.model = go.Model.fromJson(msg);
+				menuManager.fullDiagram = myFullDiagram;
+
+				runFilter();
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : {
+				fileName : 'system',
+				objectKey : 'org'
+			}
+		});
+	}
+
+	function loadUsers() {
+		jQuery.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/load.do",
+			dataType : "json",
+			success : function(msg) {
+				menuManager.users = msg;
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : {
+				fileName : 'system',
+				objectKey : 'users'
+			}
+		});
+	}
+
+	function getTotalModel() {
+		var modifyModel = menuManager.modifyModel;
+
+		if (modifyModel.node.length != 0) {
+			var model = new go.GraphLinkModel();
+			model.nodeDataArray = menuManager.fullDiagram.model.nodeDataArray;
+			model.linkDataArray = menuManager.fullDiagram.model.linkDataArray;
+
+			//추가
+			var addNodes = new Array();
+			var addLinks = new Array();
+			for ( var index in modifyModel.types) {
+				switch (modifyModel.types[index]) {
+				case 'addNode':
+					model.addNodeDatapush(modifyModel.nodes[index]);
+					break;
+				case 'addLink':
+					addLinks.push(modifyModel.nodes[index]);
+					break;
+				default:
+					break;
+				}
+			}
+
+			jQuery.merge(saveDataArray, addNodes);
+			jQuery.merge(saveLinkArray, addLinks);
+
+			//삭제
+			for ( var index in modifyModel.types) {
+				switch (modifyModel.types[index]) {
+				case 'deleteNode':
+					addNodes.push(modifyModel.nodes[index]);
+					break;
+				case 'deleteLink':
+					addNodes.push(modifyModel.nodes[index]);
+					break;
+				default:
+					break;
+				}
+			}
+			jQuery.merge(saveModel.linkDataArray, tempLink);
+			saveModel.linkDataArray = jQuery.unique(saveModel.linkDataArray);
+			console.info("new linkDataArray:" + JSON.stringify(tempLink));
+			jQuery.merge(saveModel.nodeDataArray, newDataNodes);
+			return model;
+		}
+
+		return menuManager.fullDiagram.model;
+	}
+
+	//선택된 사용자만 저장하자.
+	function saveGroup() {
+		var sendInfo = {
+			fileName : "system",
+			objectKey : "userGroup",
+			content : myFullDiagram.model.toJson()
+		};
+
+		jQuery.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/save.do",
+			dataType : "json",
+			success : function(msg) {
+				if (msg) {
+					alert("저장되었습니다.");
+				} else {
+					alert("저장할수 없습니다.");
+				}
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : sendInfo
+		});
+	}
+
+	function uniquefyLink(links) {
+		var newLinks = [];
+		for ( var index in links) {
+			var founded = false;
+			for ( var newIndex in newLinks) {
+				var comp1 = newLinks[newIndex].from + newLinks[newIndex].to;
+				var comp2 = links[index].from + links[index].to;
+				if (comp1 == comp2) {
+					founded = true;
+				}
+			}
+			if (!founded)
+				newLinks.push(links[index]);
+		}
+		return newLinks;
+	}
+
+	//현재 화면에 출력된 내용을 그래도 저장함.
+	function saveCurrentMenu() {
+		myDiagram.model.linkDataArray = uniquefyLink(myDiagram.model.linkDataArray);
+
+		var sendInfo = {
+			fileName : "system",
+			objectKey : "menu",
+			content : myDiagram.model.toJson()
+		};
+
+		jQuery.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/save.do",
+			dataType : "json",
+			success : function(msg) {
+				if (msg) {
+					alert("저장되었습니다.");
+				} else {
+					alert("저장할수 없습니다.");
+				}
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : sendInfo
+		});
+	}
+
+	function runFilter() {
+		var depth = 1;
+		jQuery("#depths").children().each(function() {
+			if (this.type == 'radio' && this.checked) {
+				depth = parseInt(this.value);
+			}
+		});
+		//depth필터 해준다.
+		myFullDiagram.findPartForKey(rootId).isSelected = true;
+
+		var node = myFullDiagram.selection.first();
+		if (node !== null) {
+			var model = new go.TreeModel();
+			var nearby = node.findTreeParts(depth + 1);
+
+			nearby.each(function(n) {
+				if (n instanceof go.Node)
+					model.addNodeData(n.data);
+			});
+			myDiagram.model = model;
+
+			layout();
+		} else {
+			alert("전체 노드중 선택된 노드가 없습니다.");
+		}
+	}
+
+	//해당 key값이 있는지 확인
+	function findDataNode(nodes, key) {
+		for (index in nodes) {
+			if (nodes[index].key == key)
+				return true;
+		}
+		return false;
+	}
+
+	function addedList() {
+		alert(JSON.stringify(menuManager.newDataNodes));
+	}
+
+	//데이터 오브젝트에 
+	function openDataEdit(obj) {
+		menuManager.currentNode = obj;
+		if (obj.data == null) {
+			var model = window.myDiagram.model;
+			model.setDataProperty(obj, "data", {});
+			document.getElementById("data_menuId").value = obj.key;
+			document.getElementById("data_menuNm").value = obj.text;
+			document.getElementById("data_sortSn").value = 1;
+			document.getElementById("data_dc").value = obj.text;
+		} else {
+			document.getElementById("data_menuId").value = obj.key;
+			document.getElementById("data_menuNm").value = obj.data.menuNm;
+			document.getElementById("data_sortSn").value = obj.data.sortSn;
+			document.getElementById("data_dc").value = obj.data.dc;
+		}
+
+		myDiagram.startTransaction("openDataEdit");
+		myDiagram.selection.each(function(node) {
+			if (!(node instanceof go.Node))
+				return;
+
+			var panel = document.getElementById("editDataSource");
+			panel.style.visibility = "visible";
+
+		});
+		myDiagram.commitTransaction("openDataEdit");
+	}
+
+	function saveDataSource() {
+		window.myDiagram.startTransaction("setSequenceLinkDefaultFlow");
+		var model = window.myDiagram.model;
+		model.setDataProperty(menuManager.currentNode, "text", document.getElementById("data_menuNm").value);
+		model.setDataProperty(menuManager.currentNode, "data", {
+			menuId : document.getElementById("data_menuId").value,
+			menuNm : document.getElementById("data_menuNm").value,
+			menuTp : getMeneType(menuManager.currentNode.category),
+			sortSn : document.getElementById("data_sortSn").value,
+			dc : document.getElementById("data_dc").value
+		});
+		window.myDiagram.commitTransaction("setSequenceLinkDefaultFlow");
+	}
+
+	function closeElement(id) {
+		var panel = document.getElementById(id);
+		if (panel.style.visibility === "visible") {
+			panel.style.visibility = "hidden";
+		}
+	}
+
+	function getMeneType(type) {
+		switch (type) {
+		case "Folder":
+			return "F";
+		case "Program":
+			return "P";
+		case "Link":
+			return "L";
+		case "Report":
+			return "R";
+		default:
+			break;
+		}
+		return "F";
+	}
+
+	function convertCategoryImage(category) {
+		return "/zPortal/zVM/images/menu/" + category.toLowerCase() + ".png";
+	}
+</script>
+</head>
+<body onload="init();">
+	<div style="width: 100%; white-space: nowrap;">
+		<div id="menuToolbar" class="ui-widget-header ui-corner-all">
+			<span id="depths"> <input type="radio" name="Depth" id="ck_Depth1" value="1" checked><label id="lb_Depth1" for="ck_Depth1">1</label></input> <input type="radio" name="Depth" id="ck_Depth2"
+				value="2"><label id="lb_Depth2" for="ck_Depth2">2</label></input> <input type="radio" name="Depth" id="ck_Depth3" value="3"><label id="lb_Depth3" for="ck_Depth3">3</label></input> <input
+				type="radio" name="Depth" id="ck_Depth4" value="4"><label id="lb_Depth4" for="ck_Depth4">4</label></input>
+			</span>
+			<button id="saveBtn4" type="button">실행</button>
+			<button id="saveBtn5" type="button">추가된목록</button>
+			<span style="float: right">
+				<button id="saveBtn3" type="button">저장</button>
+				<button id="saveBtn6" type="button">출력대로저장</button>
+			</span>
+
+		</div>
+		<div style="width: 100%; white-space: nowrap;">
+			<span style="display: inline-block; vertical-align: top; padding: 5px; width: 10%">
+				<div id="palette" style="background-color: Snow; border: solid 1px gray; height: 330px"></div>
+				<div class="handle">전체화면</div>
+				<div id="myOverview"></div>
+			</span> <span style="display: inline-block; vertical-align: top; padding: 5px; width: 89%">
+				<div id="myDiagram" style="background-color: Snow; border: solid 1px gray; height: 500px; width: 100%"></div>
+				<div id="myFullDiagram" style="height: 0px; width: 0px; visibility: hidden"></div>
+			</span>
+		</div>
+	</div>
+	<!--  데이터 소스  -->
+	<div id="editDataSource" class="draggable">
+		<div id="editDataSourceHandle" class="handle">데이터 소스 편집</div>
+		<div>
+			<ul>
+				<li><span style="float: left"> <label for="data_menuId">ID</label><input type="text" id="data_menuId">
+				</span> <span style="float: left"> <label for="data_menuNm">이름</label><input type="text" id="data_menuNm">
+				</span> <br> <span style="float: left"> <label for="data_sortSn">순서</label><input type="text" id="data_sortSn">
+				</span> <span style="float: left"> <label for="data_dc">설명</label><input type="text" id="data_dc">
+				</span></li>
+				<li>
+					<button id="saveBtn3" class="elementBtn" type="button" onclick="saveDataSource()">저장</button>
+					<button id="cancelBtn2" class="elementBtn" type="button" onclick="closeElement('editDataSource')">닫기</button>
+				</li>
+			</ul>
+		</div>
+	</div>
+</body>
+</html>
+

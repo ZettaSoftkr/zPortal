@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body oncontextmenu="return false;">
+<script src="d3.min.js"></script>
+<script src="scatterPlotChartData.js" type="text/javascript"></script>
+<script src="scatterPlotChartJS.js" type="text/javascript"></script>
+<link href="scatterPlotChartStyle.css" rel="stylesheet" />
+<script>
+
+function layout() {
+	this.sepalLength;
+	this.sepalWidth;
+	this.petalLength;
+	this.petalWidth;
+	this.species;
+}
+
+var disLst = new Array();
+var datalist = new Array();
+for (var i = 1; i < dataSet.length; i++) {
+
+		var tmpList = new layout();
+		
+		if(disLst.indexOf(dataSet[i][0]) == -1){
+		tmpList.sepalLength = dataSet[i][0];
+		tmpList.sepalWidth = dataSet[i][1];
+		tmpList.petalLength = dataSet[i][2];
+		tmpList.petalWidth = dataSet[i][3];
+		tmpList.species = dataSet[i][4];
+		
+		datalist.push(tmpList);
+		}
+}
+
+scatterPlot.draw(datalist, 950, 500);
+
+</script>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body oncontextmenu="return false;">
+<script src="d3.v3.min.js"></script>
+<script src="d3.tip.v0.6.3.js"></script>
+<script src="lineChartData.js" type="text/javascript"></script>
+<script src="lineChartJS.js" type="text/javascript"></script>
+<link href="lineChartStyle.css" rel="stylesheet" />
+<script>
+function layout() {
+	this.dim;
+	this.meas;
+}
+
+var parseDate = d3.time.format("%Y-%m-%d").parse;
+
+var disLst = new Array();
+var datalist = new Array();
+for (var i = 1; i < dataSet.length; i++) {
+
+		var tmpList = new layout();
+		
+		if(disLst.indexOf(dataSet[i][0]) == -1){
+		tmpList.dim = parseDate(dataSet[i][0]);
+		tmpList.meas = +dataSet[i][1];
+		
+		datalist.push(tmpList);
+		}
+}
+
+var data = datalist.map(function(d){return [d.dim, d.meas];});
+
+lineChart.draw(data, 960, 500, 1);
+
+
+
+</script>

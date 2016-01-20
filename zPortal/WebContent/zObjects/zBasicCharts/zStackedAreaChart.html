@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.browser text {
+  text-anchor: end;
+}
+
+</style>
+<body oncontextmenu="return false;">
+<script src="d3.min.js"></script>
+<script src="stackedAreaChartData.js" type="text/javascript"></script>
+<script src="stackedAreaChartJS.js" type="text/javascript"></script>
+<link href="stackedAreaChartStyle.css" rel="stylesheet" />
+<script>
+
+function layout() {
+	this.date;
+	this.meas1;
+	this.meas2;
+	this.meas3;
+	this.meas4;
+	this.meas5;
+}
+
+var disLst = new Array();
+var datalist = new Array();
+for (var i = 1; i < dataSet.length; i++) {
+
+		var tmpList = new layout();
+		
+		if(disLst.indexOf(dataSet[i][0]) == -1){
+		tmpList.date = dataSet[i][0];
+		tmpList.meas1 = dataSet[i][1];
+		tmpList.meas2 = dataSet[i][2];
+		tmpList.meas3 = dataSet[i][3];
+		tmpList.meas4 = dataSet[i][4];
+		tmpList.meas5 = dataSet[i][5];
+		
+		datalist.push(tmpList);
+		}
+} 
+
+stackedAreaChart.draw(datalist, 960, 500);
+
+
+</script>

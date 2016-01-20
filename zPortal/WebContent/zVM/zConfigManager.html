@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ZettaSoft Edit Config</title>
+<style>
+html {
+	margin: 0;
+	padding: 0;
+	font-size: 62.5%;
+}
+
+body {
+	max-width: 800px;
+	min-width: 300px;
+	margin: 0 auto;
+	padding: 5px 10px;
+	font-size: 14px;
+	font-size: 1.4em;
+}
+
+h1 {
+	font-size: 1.8em;
+}
+
+.demo {
+	overflow: auto;
+	border: 1px solid silver;
+	min-height: 100px;
+}
+</style>
+<link rel="stylesheet" href="../assets/css/site.css" />
+<link rel="stylesheet" href="../assets/css/jsTree/jsTree.min.css" />
+<link rel="stylesheet" href="../assets/css/bootstrap/bootstrap.min.css"></link>
+<link rel="stylesheet" href="../assets/css/bootstrap/bootstrap-switch.min.css">
+<link rel="stylesheet" href="../assets/css/font-awesome/css/font-awesome.min.css">
+<script src="../assets/js/jquery-2.1.4.min.js"></script>
+
+</head>
+<body oncontextmenu="return false;">
+	<div>
+		<div class="col-sm-6 col-lg-4">
+			<h2 class="h4">Edit Mode</h2>
+			<p>
+				<input id="switch-state" type="checkbox" checked>
+			</p>
+		</div>
+		
+		<div class="col-sm-6 col-lg-4">
+			<h2 class="h4">Show Menu</h2>
+			<p>
+				<a class="btn btn-default btn-sm" href="#"> <i class="fa fa-cog"></i> Menu</a>
+			</p>
+		</div>
+		
+		<div class="col-sm-6 col-lg-4">
+			<h2 class="h4">Theme</h2>
+			<div class="margin-bottom">
+				<div class="btn-group close">
+					<a class="btn btn-primary" href="#"><i class="fa fa-user fa-fw"></i> User</a> <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#"> <span class="fa fa-caret-down"></span></a>
+					<ul class="dropdown-menu">
+						<li><a href="#"><i class="fa fa-pencil fa-fw"></i> Edit</a></li>
+						<li><a href="#"><i class="fa fa-trash-o fa-fw"></i> Delete</a></li>
+						<li><a href="#"><i class="fa fa-ban fa-fw"></i> Ban</a></li>
+						<li class="divider"></li>
+						<li><a href="#"><i class="i"></i> Make admin</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+
+
+		<div class="row">
+			<div class="col-md-3 col-sm-4">
+				<h2 class="h4">Saved My Data</h2>
+				<p>
+					<div class="list-group">
+					  <a href="#" class="list-group-item">First item</a>
+					  <a href="#" class="list-group-item">Second item</a>
+					  <a href="#" class="list-group-item">Third item</a>
+					</div>
+				</p>
+				
+				<h2 class="h4">My Favorite</h2>
+				<p>
+					<div class="btn-group close">
+					<a class="btn btn-primary" href="#"><i class="fa fa-user fa-fw"></i> User</a> <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#"> <span class="fa fa-caret-down"></span></a>
+					<ul class="dropdown-menu">
+						<li><a href="#"><i class="fa fa-pencil fa-fw"></i> Edit</a></li>
+						<li><a href="#"><i class="fa fa-trash-o fa-fw"></i> Delete</a></li>
+						<li><a href="#"><i class="fa fa-ban fa-fw"></i> Ban</a></li>
+						<li class="divider"></li>
+						<li><a href="#"><i class="i"></i> Make admin</a></li>
+					</ul>
+				</div>
+				</p>
+			</div>
+			<div class="col-md-9 col-sm-8">
+				<p>Logging Info</p>
+				<div class="highlight">
+					<div class="list-group">
+					  <a href="#" class="list-group-item">First item</a>
+					  <a href="#" class="list-group-item">Second item</a>
+					  <a href="#" class="list-group-item">Third item</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script src="../assets/js/bootstrap/bootstrap.min.js"></script>
+<script src="../assets/js/bootstrap/bootstrap-switch.min.js"></script>
+<script>
+
+$(function() {
+
+    $("input[type=\"checkbox\"], input[type=\"radio\"]").not("[data-switch-no-init]").bootstrapSwitch();
+    $("[data-switch-get]").on("click", function() {
+      var type;
+      type = $(this).data("switch-get");
+      return alert($("#switch-" + type).bootstrapSwitch(type));
+    });
+    
+  });
+  
+</script>
+</html>

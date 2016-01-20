@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>jstree basic demos</title>
+<style>
+html {
+	margin: 0;
+	padding: 0;
+	font-size: 62.5%;
+}
+
+body {
+	max-width: 800px;
+	min-width: 300px;
+	margin: 0 auto;
+	padding: 20px 10px;
+	font-size: 14px;
+	font-size: 1.4em;
+}
+
+h1 {
+	font-size: 1.8em;
+}
+
+.demo {
+	overflow: auto;
+	border: 1px solid silver;
+	min-height: 100px;
+}
+</style>
+<link rel="stylesheet" href="../assets/css/site.css" />
+<!-- <link rel="stylesheet" href="../assets/css/pygments.css" /> -->
+<link rel="stylesheet" href="../assets/css/jsTree/jsTree.min.css" />
+<link src="../assets/css/bootstrap/bootstrap.min.css"></link>
+<link rel="stylesheet" href="../assets/css/font-awesome/css/font-awesome.min.css">
+
+<script src="../assets/js/jquery-2.1.4.min.js"></script>
+<script src="../assets/js/jsTree/jstree.min.js"></script>
+
+</head>
+<body oncontextmenu="return false;">
+
+	<a class="btn btn-danger" href="#"> <i class="fa fa-trash-o fa-lg"></i> Delete
+	</a>
+	<a class="btn btn-default btn-sm" href="#"> <i class="fa fa-cog"></i> Settings
+	</a>
+
+	<ul class="dropdown-menu pull-right">
+		<li><a href="../icons/"><i class="fa fa-flag fa-fw"></i>&nbsp; All Icons</a></li>
+		<li class="divider"></li>
+		<li><a href="../icons/#new"><i class="fa fa-fort-awesome fa-fw"></i>&nbsp; New Icons in 4.5</a></li>
+		<li><a href="../icons/#web-application"><i class="fa fa-camera-retro fa-fw"></i>&nbsp; Web Application Icons</a></li>
+		<li><a href="../icons/#hand"><i class="fa fa-hand-spock-o fa-fw"></i>&nbsp; Hand Icons</a></li>
+		<li><a href="../icons/#transportation"><i class="fa fa-ship fa-fw"></i>&nbsp; Transportation Icons</a></li>
+		<li><a href="../icons/#gender"><i class="fa fa-venus fa-fw"></i>&nbsp; Gender Icons</a></li>
+		<li><a href="../icons/#file-type"><i class="fa fa-file-image-o fa-fw"></i>&nbsp; File Type Icons</a></li>
+		<li><a href="../icons/#spinner"><i class="fa fa-spinner fa-fw"></i>&nbsp; Spinner Icons</a></li>
+		<li><a href="../icons/#form-control"><i class="fa fa-check-square fa-fw"></i>&nbsp; Form Control Icons</a></li>
+		<li><a href="../icons/#payment"><i class="fa fa-credit-card fa-fw"></i>&nbsp; Payment Icons</a></li>
+		<li><a href="../icons/#chart"><i class="fa fa-pie-chart fa-fw"></i>&nbsp; Chart Icons</a></li>
+		<li><a href="../icons/#currency"><i class="fa fa-won fa-fw"></i>&nbsp; Currency Icons</a></li>
+		<li><a href="../icons/#text-editor"><i class="fa fa-file-text-o fa-fw"></i>&nbsp; Text Editor Icons</a></li>
+		<li><a href="../icons/#directional"><i class="fa fa-arrow-right fa-fw"></i>&nbsp; Directional Icons</a></li>
+		<li><a href="../icons/#video-player"><i class="fa fa-play-circle fa-fw"></i>&nbsp; Video Player Icons</a></li>
+		<li><a href="../icons/#brand"><i class="fa fa-github fa-fw"></i>&nbsp; Brand Icons</a></li>
+		<li><a href="../icons/#medical"><i class="fa fa-medkit fa-fw"></i>&nbsp; Medical Icons</a></li>
+	</ul>
+	</li>
+
+	<h2>zetta 데모</h2>
+	<input type="text" id="zetta_q" value="" class="input" style="margin: 0em auto 1em auto; display: block; padding: 4px; border-radius: 4px; border: 1px solid silver;" />
+
+	<div id="zetta" class="demo"></div>
+
+	<h1>HTML demo</h1>
+	<div id="html" class="demo">
+		<ul>
+			<li data-jstree='{ "opened" : true }'>Root node
+				<ul>
+					<li data-jstree='{ "selected" : true }'>Child node 1</li>
+					<li>Child node 2</li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+
+
+
+	<h1>Inline data demo</h1>
+	<div id="data" class="demo"></div>
+
+	<h1>Data format demo</h1>
+	<div id="frmt" class="demo"></div>
+
+	<h1>AJAX demo</h1>
+	<div id="ajax" class="demo"></div>
+
+	<h1>Lazy loading demo</h1>
+	<div id="lazy" class="demo"></div>
+
+	<h1>Callback function data demo</h1>
+	<div id="clbk" class="demo"></div>
+
+	<h1>Interaction and events demo</h1>
+	<button id="evts_button">select node with id 1</button>
+	<em>either click the button or a node in the tree</em>
+
+<div id="evts" class="demo"></div>
+
+	<div id="test" class="demo">
+		<ul>
+			<li>root</li>
+			<ul>
+				<li>데모</li>
+				<ul>
+					<li>기관</li>
+					<li>기관현황</li>
+				</ul>
+				<ul>
+					<li>시각화</li>
+					<li>연관성분석</li>
+					<li>연관성분석</li>
+				</ul>
+			</ul>
+			<ul>
+				<li>관리자</li>
+				<li>system</li>
+				<li>정보생성</li>
+			</ul>
+			<li>화면테스트</li>
+		</ul>
+	</div>
+
+
+	<script>
+	$('#test').jstree({
+		'core' : {
+			'data' : [ {
+				"id" : 1,
+				"text" : "Root node",
+				"children" : [ {
+					"id" : 2,
+					"text" : "Child node 1"
+				}, {
+					"id" : 3,
+					"text" : "Child node 2",
+					"type" : "R"
+				} ]
+			}, {
+				"id" : 5,
+				"text" : "Root node",
+				"type" : "D",
+				"children" : [ {
+					"id" : 6,
+					"text" : "Child node 1",
+					"type" : "V"
+				}, {
+					"id" : 7,
+					"text" : "www",
+					"type" : "V"
+				} ]
+			} ]
+		},
+		"types" : {
+			"default" : {
+				"icon" : "fa fa-folder-o"
+			},
+			"D" : {
+				"icon" : "fa fa-laptop"
+			},
+			"R" : {
+				"icon" : "fa fa-cogs"
+			},
+			"V" : {
+				"icon" : "fa fa-cog"
+			}
+		},
+		"plugins" : [ "wholerow", "types", "search", "state" ]
+	});
+	
+		$('#zetta').jstree({
+			'core' : {
+				'data' : [ {
+					"id" : 1,
+					"text" : "Root node",
+					"children" : [ {
+						"id" : 2,
+						"text" : "Child node 1"
+					}, {
+						"id" : 3,
+						"text" : "Child node 2",
+						"type" : "R"
+					} ]
+				}, {
+					"id" : 5,
+					"text" : "Root node",
+					"type" : "D",
+					"children" : [ {
+						"id" : 6,
+						"text" : "Child node 1",
+						"type" : "V"
+					}, {
+						"id" : 7,
+						"text" : "www",
+						"type" : "V"
+					} ]
+				} ]
+			},
+			"types" : {
+				"default" : {
+					"icon" : "fa fa-folder-o"
+				},
+				"D" : {
+					"icon" : "fa fa-laptop"
+				},
+				"R" : {
+					"icon" : "fa fa-cogs"
+				},
+				"V" : {
+					"icon" : "fa fa-cog"
+				}
+			},
+			"plugins" : [ "wholerow", "types", "search", "state" ]
+		});
+
+		var to = false;
+		$('#zetta_q').keyup(function() {
+			if (to) {
+				clearTimeout(to);
+			}
+			to = setTimeout(function() {
+				var v = $('#zetta_q').val();
+				$('#zetta').jstree(true).search(v);
+			}, 250);
+		});
+
+		// html demo
+		$('#html').jstree();
+
+		// inline data demo
+		$('#data').jstree({
+			'core' : {
+				'data' : [ {
+					"text" : "Root node",
+					"children" : [ {
+						"text" : "Child node 1"
+					}, {
+						"text" : "Child node 2"
+					} ]
+				} ]
+			}
+		});
+
+		// data format demo
+		$('#frmt').jstree({
+			'core' : {
+				'data' : [ {
+					"text" : "Root node",
+					"state" : {
+						"opened" : true
+					},
+					"children" : [ {
+						"text" : "Child node 1",
+						"state" : {
+							"selected" : true
+						},
+						"icon" : "jstree-file"
+					}, {
+						"text" : "Child node 2",
+						"state" : {
+							"disabled" : true
+						}
+					} ]
+				} ]
+			}
+		});
+
+		// ajax demo
+		$('#ajax').jstree({
+			'core' : {
+				'data' : [ {
+					"id" : 1,
+					"text" : "Root node",
+					"children" : [ {
+						"id" : 2,
+						"text" : "Child node 1"
+					}, {
+						"id" : 3,
+						"text" : "Child node 2"
+					} ]
+				} ]
+			},
+			"plugins" : [ "wholerow" ]
+		});
+
+		// lazy demo
+		$('#lazy').jstree({
+			'core' : {
+				'data' : {
+					"url" : "//www.jstree.com/fiddle/?lazy",
+					"data" : function(node) {
+						return {
+							"id" : node.id
+						};
+					}
+				}
+			}
+		});
+
+		// data from callback
+		$('#clbk').jstree({
+			'core' : {
+				'data' : function(node, cb) {
+					if (node.id === "#") {
+						cb([ {
+							"text" : "Root",
+							"id" : "1",
+							"children" : true
+						} ]);
+					} else {
+						cb([ "Child" ]);
+					}
+				}
+			}
+		});
+
+		// interaction and events
+		$('#evts_button').on("click", function() {
+			var instance = $('#evts').jstree(true);
+			instance.deselect_all();
+			instance.select_node('2');
+		});
+		$('#evts').on("changed.jstree", function(e, data) {
+			if (data.selected.length) {
+				alert('The selected node is: ' + data.instance.get_node(data.selected[0]).text);
+			}
+		}).jstree({
+			'core' : {
+				'multiple' : false,
+				'data' : [ {
+					"text" : "Root node",
+					"children" : [ {
+						"text" : "Child node 1",
+						"id" : 1
+					}, {
+						"text" : "Child node 2",
+						"id" : 2
+					} ]
+				} ]
+			}
+		});
+	</script>
+
+
+	<div id="plugins4" class="demo plugin-demo">
+		<ul>
+			<li data-jstree='{"opened":true}'>Root node
+				<ul>
+					<li>Child node 1</li>
+					<li>Child node 2</li>
+				</ul>
+			</li>
+			<li>Root node 2</li>
+		</ul>
+	</div>
+	<script>
+		$(function() {
+			$("#plugins4").jstree({
+				"plugins" : [ "search" ]
+			});
+			var to = false;
+			$('#plugins4_q').keyup(function() {
+				if (to) {
+					clearTimeout(to);
+				}
+				to = setTimeout(function() {
+					var v = $('#plugins4_q').val();
+					$('#plugins4').jstree(true).search(v);
+				}, 250);
+			});
+		});
+	</script>
+
+</body>
+</html>

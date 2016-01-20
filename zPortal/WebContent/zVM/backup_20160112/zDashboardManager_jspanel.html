@@ -1,0 +1,611 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>Planogram</title>
+<meta name="description" content="An editor for defining planograms: visual displays of merchandise." />
+<meta charset="UTF-8">
+<script src="../assets/js/go/go.js"></script>
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
+
+        <link rel="stylesheet" href="../assets/css/flick/jquery-ui.css" />
+        <link rel="stylesheet" href="../assets/css/bootstrap/bootstrap.min.css">
+        <link rel="stylesheet" href="../assets/css/font-awesome/css/font-awesome.min.css">
+        <!-- loading jsPanel css -->
+        <link href="../jspanel/jquery.jspanel.css" rel="stylesheet">
+        
+<script src="../assets/js/jquery-2.1.4.min.js"></script>
+<script src="../assets/js/jquery-ui/jquery-ui.min.js"></script>
+<script src="model/zMRootNode.js"></script>
+<script src="model/zMenuLink.js"></script>
+<script src="model/zMenuNode.js"></script>
+<script src="model/zMenu.js"></script>
+<script src="model/zTree.js"></script>
+<script src="model/zOrg.js"></script>
+
+        <script src="../assets/js/bootstrap/bootstrap.min.js"></script>
+		<SCRIPT type="text/javascript" src="../assets/js/mobile-detect.min.js"></SCRIPT>
+    	<script src="../assets/js/jquery.ui.touch-punch.min.js"></script>
+        <script src="../jspanel/jquery.jspanel.js"></script>
+        
+        
+<link rel="stylesheet" href="../assets/css/menu.css">
+
+<style type="text/css">
+.draggable{
+	cursor: move;
+}
+
+#selectionObjects {
+	display: inline-block;
+	vertical-align: top;
+	border: 4px solid #BBB;
+	border-radius: 4px;
+	background-color: #F5F5F5;
+	position: absolute;
+	top: 200px;
+	left: 500px;
+	width: 500px;
+	z-index: 500;
+}
+
+.handle {
+	background-color: lightblue;
+	cursor: move;
+	text-align: center;
+	font: bold 12px sans-serif;
+}
+
+#infoDraggable {
+	font: 12px helvetica, sans-serif;
+}
+
+#myInfo {
+	padding: 6px;
+}
+
+#myPalette {
+	background-color: #F5F5F5;
+	width: 100%;
+	height: 100%;
+}
+
+/*
+One simple way of making a div fill its space,
+with allowances for the title (top) and the resize handle (bottom)
+*/
+#paletteContainer {
+	position: absolute;
+	bottom: 14px;
+	left: 0px;
+	right: 0px;
+	top: 14px;
+}
+</style>
+
+<style>
+#gallery {
+	float: left;
+	width: 65%;
+	min-height: 12em;
+}
+
+.gallery.custom-state-active {
+	background: #eee;
+}
+
+.gallery li {
+	float: left;
+	width: 96px;
+	padding: 0.4em;
+	margin: 0 0.4em 0.4em 0;
+	text-align: center;
+}
+
+.gallery li h5 {
+	margin: 0 0 0.4em;
+	cursor: move;
+}
+
+.gallery li a {
+	float: right;
+}
+
+.gallery li a.ui-icon-zoomin {
+	float: left;
+}
+
+.gallery li img {
+	width: 100%;
+	cursor: move;
+}
+
+.report {
+	position: absolute;
+	border : 1px;
+}
+
+report h4 {
+	line-height: 16px;
+	margin: 0 0 0.4em;
+}
+
+report h4 .ui-icon {
+	float: left;
+}
+
+</style>
+<script>
+	var $catalog = null;
+	var dashboardNm = "첫번째";
+	var reports = [];
+
+	$(function() {		
+		var rootNode = new zMRootNode();
+		
+		$("#btnSave").button();
+		$("#btnSave").click(function(){
+			saveDashboard();
+		});
+		
+		$("#btnMenu").button();
+		$("#btnMenu").click(function(){
+			var menu = $.jsPanel({
+			    paneltype: {
+			        type: 'modal',
+			        mode: 'default'
+			    },
+			    size:     {width: window.innerWidth * 0.9, height: window.innerHeight * 0.9},
+			    theme:    'medium',
+			    title:    "메뉴설정",
+        	    iframe: {
+        	        src:    "/zPortal/zVM/zMenuManager.html?fileName=system&objectKey=menu",
+        	        style:  {"display": "none", "border": "10px solid transparent"},
+        	        width:  '100%',
+        	        height: '100%'
+        	    },
+        	    callback: function (panel) {
+        	        $("iframe", panel).load(function (e) {
+        	          $(e.target).fadeIn(200);
+        	        });
+        	    }
+			});
+		});
+
+		$('body').draggable({handle : ".ui-widget-header"});
+		
+		$catalog = $("#catalog");
+
+		$.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/load.do",
+			dataType : "json",
+			success : function(msg) {
+				rootNode = msg;
+				
+				var treeRoot = new zTree("#");
+				var tree = makeMenuTree(rootNode, treeRoot);				
+				
+				//top---------------------------------------------------------------------------
+				var html = '<h1 class="ui-widget-header">Zetta Soft</h1>';
+				html += "<ul>";
+				html += makeMenuHtml(rootNode, tree, '');
+				html += "</ul>";
+				
+				$("#cssmenu").menumaker({
+					format: "multitoggle"
+				});	
+				
+				$("#cssmenu").html(html);
+
+				jQuery("#selectionObjects").draggable({
+					handle : ".ui-widget-header"
+				}).resizable({
+					stop : function() {
+						;
+					}
+				});
+
+				$catalog.accordion();
+
+				$(".draggable", $catalog).draggable({
+					cancel : "a.ui-icon",
+					revert : "invalid",
+					containment : "document",
+					helper : "clone",
+					cursor : "move",
+					start: function() {
+				        addItem();
+				      }
+				});
+
+				$('#cssmenu li.has-sub>a').on('click', function(){
+					$(this).removeAttr('href');
+					var element = $(this).parent('li');
+					if (element.hasClass('open')) {
+						element.removeClass('open');
+						element.find('li').removeClass('open');
+						element.find('ul').slideUp();
+					}
+					else {
+						element.addClass('open');
+						element.children('ul').slideDown();
+						element.siblings('li').children('ul').slideUp();
+						element.siblings('li').removeClass('open');
+						element.siblings('li').find('li').removeClass('open');
+						element.siblings('li').find('ul').slideUp();
+					}
+				});
+		
+				$('#cssmenu>ul>li.has-sub>a').append('<span class="holder"></span>');
+
+			},
+			error : function(request, status, error) {
+				alert("error:" + error);
+			},
+			data : {
+				fileName : 'system',
+				objectKey : 'menu'
+			}
+		});
+
+	});
+	
+	function addItem(){
+		reports[reports.length] = [reports.length + 1, "", "", "", ""];
+
+		var id =  reports[reports.length-1][0];
+		$("#panel").append('<div id="report' +  id + '" class="report"></div>');
+		var curDiv = $("#report" +  id);
+
+		curDiv.offset({ top: 10, left: 10})
+		curDiv.width(window.innerWidth * 0.96);
+		curDiv.height(window.innerHeight * 0.46);
+
+		$("#panel > div").each(function () {
+		      $(this).droppable({
+		    	  	activeClass : "ui-state-default",
+					accept : ".draggable",
+					drop : function(event, ui) {
+							showItem(ui.draggable,  id);
+					}
+			});
+		});
+	}
+	
+	function showItem($item, id) {
+		var selector = "#report" + id;
+		var href = $item.attr("href");
+		
+		reports[id-1][1] = $item.text();
+		reports[id-1][2] = href;
+		
+		$item.fadeOut(function() {
+	        $item.fadeIn(function() {
+	          var $newPanel = $.jsPanel({
+	        	  		selector: selector,
+	            	    title:    $item.text(),
+	            	    theme:    "light",
+	            	    iframe: {
+	            	        src:    href,
+	            	        style:  {"display": "none", "border": "10px solid transparent"},
+	            	        width:  '100%',
+	            	        height: '100%'
+	            	    },
+	            	    callback: function (panel) {
+	            	        $("iframe", panel).load(function (e) {
+	            	          $(e.target).fadeIn(200);
+	            	        });
+	            	    }
+	            	});	          
+	          $newPanel.animate({ width: "100%"});
+	          $item.animate({ width: "100%"});
+	          
+	          $newPanel.maximize();	          
+	        });
+	      });
+	}	 
+	
+	function saveDashboard(){
+		//position, offset 정보 저장하기.
+		
+		var results = [];
+		for (var index in reports){
+			if($("#report" + reports[index][0]) != null){
+				reports[index][3] = $("#report" + reports[index][0]).position();
+				reports[index][4] = $("#report" + reports[index][0]).offset();
+			}
+		}
+		
+		console.info("save data::::" + JSON.stringify(reports));
+		
+		var sendInfo = {
+				fileName : "dashboards",
+				objectKey : dashboardNm,
+				content : JSON.stringify(reports)
+		};
+
+		$.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/save.do",
+			dataType : "json",
+			success : function(msg) {
+				if (msg) {
+					alert(dashboardNm + " 대시보드가 저장되었습니다.");
+				} else {
+					alert(dashboardNm + " 대시보드를 저장할수 없습니다.");
+				}
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : sendInfo
+		});
+	}
+	
+	function findNode(currChild, value) {
+		if (currChild.value == value) {
+			return currChild;
+		} else if (currChild.children.length != 0) {
+			for (var i = 0; i < currChild.children.length; i++) {
+				if (currChild.children[i].value == value) {
+					return currChild.children[i];
+				} else {
+					findNode(currChild.children[i], value);
+				}
+			}
+			return null;
+		}
+		return null;
+	}
+	
+	function getDataNode(rootNode, key) {
+		for (var i = 0; i < rootNode.nodeDataArray.length; i++) {
+			if (rootNode.nodeDataArray[i].key == key) {
+				return rootNode.nodeDataArray[i];
+			}
+		}
+		return null;
+	}
+	
+	function makeMenuTree(rootNode, tree){
+		for (var i = 0; i < rootNode.linkDataArray.length; i++){
+			var link = rootNode.linkDataArray[i];
+			if(link.from == tree.value) {
+				var node = new zTree(link.to);
+				tree.addChild(makeMenuTree(rootNode, node), tree.value);
+			}
+		}		
+		return tree;
+	}
+	
+	function makeMenuHtml(rootNode, currChild, html) {
+		if(currChild.children.length == 0){
+			return html;
+		}
+		else {
+			for (var i = 0; i < currChild.children.length; i++) {
+				if (i == 0) {					
+					dataNode = getDataNode(rootNode, currChild.children[i].value);
+					if(dataNode != null){
+						if(currChild.children[i].children.length == 0){
+							if(currChild.children.length==1){
+								html += '<li><a><span ' + getReportInfo(dataNode) + '>' + dataNode.text + '</span></a></li>';
+								html += '</ul>';
+							}else{
+								html += '<li><span ' + getReportInfo(dataNode) + '>' + dataNode.text + '</span></a></li>';
+							}
+						}
+						else
+						{
+							if(currChild.children.length == 1){
+								html += '<li class="has-sub"><a><span ' + getReportInfo(dataNode) + '>' + dataNode.text + '</span></a></li>';
+							}else{
+								html += '<li class="has-sub"><a><span ' + getReportInfo(dataNode) + '>' + dataNode.text + '</span></a>';
+								html += '<ul>';
+							}
+						}
+					}
+					
+				}else{
+					var dataNode = getDataNode(rootNode, currChild.children[i].value);
+					if(dataNode != null) {
+						if(i==currChild.children.length - 1){
+							if(currChild.children[i].children.length == 0){
+								html += '<li class="last"><a><span ' + getReportInfo(dataNode) + '>' + dataNode.text + '</span></a></li>';
+								html += '</ul>';
+								html += '</li>';
+							}
+							else
+							{
+								html += '<li class="has-sub"><a><span ' + getReportInfo(dataNode) + '>' + dataNode.text + '</span></a>';
+								html += '<ul>';
+							}
+						}else{
+							if(currChild.children[i].children.length == 0){
+								html += '<li class="last"><a><span ' + getReportInfo(dataNode) + '>' + dataNode.text + '</span></a></li>';
+							}
+							else
+							{
+								html += '<li class="has-sub"><a><span ' + getReportInfo(dataNode) + '>' + dataNode.text + '</span></a>';
+								html += '<ul>';
+							}
+						}
+					}
+				}
+
+				html = makeMenuHtml(rootNode, currChild.children[i], html);
+			}
+		}
+
+		return html;
+	}
+	
+	function getReportInfo(dataNode){
+		var data = dataNode.data;
+		var result = '';
+		switch (data.menuTp) {
+			case 'R':
+				result += 'class="draggable" ' ;
+				result += 'href="/zPortal/zVM/zRViewer.html?fileName=' + data.menuNm + '"';
+				return result; 
+			case 'P':
+				return result;
+			case 'F':
+				return result;
+			case 'L':
+				result += 'class="draggable" ' ;
+				result += 'href="' + data.dc + '"';
+				return result;
+			case 'H':
+				return result;
+			default:
+				alert('알수없는 메뉴입니다.\n 관리자에게 메뉴를 확인하세요.');
+				return;
+		}	
+	}
+	
+	$.fn.menumaker = function(options) {
+	    
+	    var cssmenu = $(this), settings = $.extend({
+	      title: "Menu",
+	      format: "dropdown",
+	      sticky: false
+	    }, options);
+	
+	    return this.each(function() {
+	      cssmenu.prepend('<div id="menu-button">' + settings.title + '</div>');
+	      $(this).find("#menu-button").on('click', function(){
+	        $(this).toggleClass('menu-opened');
+	        var mainmenu = $(this).next('ul');
+	        if (mainmenu.hasClass('open')) { 
+	          mainmenu.hide().removeClass('open');
+	        }
+	        else {
+	          mainmenu.show().addClass('open');
+	          if (settings.format === "dropdown") {
+	            mainmenu.find('ul').show();
+	          }
+	        }
+	      });
+	
+	      cssmenu.find('li ul').parent().addClass('has-sub');
+	
+	      multiTg = function() {
+	        cssmenu.find(".has-sub").prepend('<span class="submenu-button"></span>');
+	        cssmenu.find('.submenu-button').on('click', function() {
+	          $(this).toggleClass('submenu-opened');
+	          if ($(this).siblings('ul').hasClass('open')) {
+	            $(this).siblings('ul').removeClass('open').hide();
+	          }
+	          else {
+	            $(this).siblings('ul').addClass('open').show();
+	          }
+	        });
+	      };
+	
+	      if (settings.format === 'multitoggle') multiTg();
+	      else cssmenu.addClass('dropdown');
+	
+	      if (settings.sticky === true) cssmenu.css('position', 'fixed');
+	
+	      resizeFix = function() {
+	        if ($( window ).width() > 768) {
+	          cssmenu.find('ul').show();
+	        }
+	
+	        if ($(window).width() <= 768) {
+	          cssmenu.find('ul').hide().removeClass('open');
+	        }
+	      };
+	      resizeFix();
+	      return $(window).on('resize', resizeFix);
+	
+	    });
+	};
+	
+	function getColor() {
+		var r, g, b;
+		var textColor = $('#cssmenu').css('color');
+		textColor = textColor.slice(4);
+		r = textColor.slice(0, textColor.indexOf(','));
+		textColor = textColor.slice(textColor.indexOf(' ') + 1);
+		g = textColor.slice(0, textColor.indexOf(','));
+		textColor = textColor.slice(textColor.indexOf(' ') + 1);
+		b = textColor.slice(0, textColor.indexOf(')'));
+		var l = rgbToHsl(r, g, b);
+		if (l > 0.7) {
+			$('#cssmenu>ul>li>a').css('text-shadow', '0 1px 1px rgba(0, 0, 0, .35)');
+			$('#cssmenu>ul>li>a>span').css('border-color', 'rgba(0, 0, 0, .35)');
+		}
+		else
+		{
+			$('#cssmenu>ul>li>a').css('text-shadow', '0 1px 0 rgba(255, 255, 255, .35)');
+			$('#cssmenu>ul>li>a>span').css('border-color', 'rgba(255, 255, 255, .35)');
+		}
+	}
+
+	function rgbToHsl(r, g, b) {
+	    r /= 255, g /= 255, b /= 255;
+	    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+	    var h, s, l = (max + min) / 2;
+
+	    if(max == min){
+	        h = s = 0;
+	    }
+	    else {
+	        var d = max - min;
+	        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+	        switch(max){
+	            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+	            case g: h = (b - r) / d + 2; break;
+	            case b: h = (r - g) / d + 4; break;
+	        }
+	        h /= 6;
+	    }
+	    return l;
+	}
+	
+	function editorShow(){
+		$("#selectionObjects").show();
+	}
+	
+	function editorHidden(){
+		$("#selectionObjects").show();
+	}
+</script>
+</head>
+<body oncontextmenu="return false;">
+	<div id="selectionObjects">
+		<h1 class="ui-widget-header">선택가능개체 </h1>
+		<h1><button id="btnSave">저장</button><button id="btnMenu">메뉴등록</button></h1>
+		<div id="catalog">
+			<h2>
+				<a href="#">보고서</a>
+			</h2>
+			<div id="cssmenu" style ="width:100%; height:200px;"></div>
+			<h2>
+				<a href="#">필터개체</a>
+			</h2>
+			<div>
+				<ul>
+					<li><span class="draggable">slider</span></li>
+					<li><span class="draggable">dropdownbox</span></li>
+					<li><span class="draggable">search</span></li>
+				</ul>
+			</div>
+			<h2>
+				<a href="#">레이아웃개체</a>
+			</h2>
+			<div>
+				<ul>
+					<li><span class="draggable">header bar</span></li>
+					<li><span class="draggable">footer bar</span></li>
+					<li><span class="draggable">navigation var</span></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="panel">
+	</div>
+</body>
+</html>

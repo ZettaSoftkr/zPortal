@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>jQuery UI Sortable - Portlets</title>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="../zDashboard/plugins/jQuery/jQuery-2.1.4.min.js"></script>
+
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<link rel="stylesheet" href="../zDashboard/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="../zDashboard/resources/demos/style.css">
+<link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+<link rel="stylesheet" href="../zDashboard/dist/css/AdminLTE.min.css">
+<link rel="stylesheet" href="../zDashboard/dist/css/skins/_all-skins.min.css">
+<style>
+#sortable1, #sortable2 {
+	border: 1px solid #eee;
+	width: 100%;
+	min-height: 20px;
+	list-style-type: none;
+	margin: 0;
+	padding: 5px 0 0 0;
+	float: left;
+	margin-right: 10px;
+}
+
+#sortable1 li, #sortable2 li {
+	margin: 0 5px 5px 5px;
+	padding: 5px;
+	font-size: 1.2em;
+	width: 98%;
+}
+</style>
+<script>
+var parameters = location.search.substring(1).split("&");
+var fileName = "";
+var objectKey = null;
+var menuKey = null;
+
+if(parameters.length==1){
+	fileName = parameters[0].split("=")[1];
+}
+else if(paraments.length==2){
+	fileName = parameters[0].split("=")[1];
+	objectKey = parameters[1].split("=")[1];
+}
+else{
+	fileName = parameters[0].split("=")[1];
+	objectKey = parameters[1].split("=")[1];
+	menuKey = parameters[2].split("=")[1];
+}
+
+
+
+	$(function() {
+		var sendInfo = {
+			fileName : fileName
+		};
+
+		$.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/reportInfo.do",
+			dataType : "json",
+			success : function(msg) {
+				var menuInfo = null;
+				if (window.JSON && window.JSON.parse) {
+					try {
+						var reportInfo = window.JSON.parse(msg);
+						//document.write(JSON.stringify(reportInfo));
+						//document.getElementById('if_center').src = reportInfo.objectInfo[0].url + "?fileName=" + reportInfo.reportNm + "&objectKey=" + reportInfo.objectInfo[0].objectKey;
+					} catch (d) {
+						alert("json형식 오류 error:" + d);
+					}
+				}
+				
+				init(reportInfo);
+			},
+			error : function(request, status, error) {
+				alert("error:" + error);
+			},
+			data : sendInfo
+		});
+
+	});
+
+	function init(reportInfo) {
+
+		var url1 = reportInfo.objectInfo[0].url + "?fileName=" + reportInfo.reportNm + "&objectKey=" + reportInfo.objectInfo[0].objectKey;
+		var url2 = reportInfo.objectInfo[1].url + "?fileName=" + reportInfo.reportNm + "&objectKey=" + reportInfo.objectInfo[1].objectKey;
+		var url3 = reportInfo.objectInfo[2].url + "?fileName=" + reportInfo.reportNm + "&objectKey=" + reportInfo.objectInfo[2].objectKey;
+
+		var myObject = [ {
+			div : "col-lg-12",
+			ul : "sortable1",
+			li : [ {
+				cls : "ui-state-default",
+				ifmId : url1
+			} ]
+		}, {
+			div : "col-lg-3",
+			ul : "sortable2",
+			li : [ {
+				cls : "ui-state-highlight",
+				ifmId : url2
+			}
+
+			]
+		}, {
+			div : "col-lg-9",
+			ul : "sortable2",
+			li : [ {
+				cls : "ui-state-highlight",
+				ifmId : url3
+			}
+
+			]
+		} ];
+
+		var html = "";
+		var result = "";
+		for ( var prop in myObject) {
+
+			var liObject = myObject[prop].li;
+
+			html += "<div  class=\""+ myObject[prop].div +"\">";
+			html += "<ul id=\""+myObject[prop].ul+"\" class=\"connectedSortable\">";
+			for ( var liProp in liObject) {
+				html += "<li class=\""+liObject[liProp].cls+"\"><iframe src=\"" + liObject[liProp].ifmId
+						+ "\" width=\"100%\"></iframe></li>";
+
+			}
+			html += "</ul>";
+			html += "</div>"
+
+		}
+
+		$("#viewLayout").html(html);
+
+		$("#sortable1, #sortable2").sortable({
+			connectWith : ".connectedSortable"
+		}).disableSelection();
+	}
+</script>
+</head>
+<body>
+	<section class="content">
+		<div class="row" id="viewLayout"></div>
+	</section>
+</body>
+</html>

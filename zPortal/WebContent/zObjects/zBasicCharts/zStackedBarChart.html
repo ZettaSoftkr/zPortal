@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body oncontextmenu="return false;">
+<script src="d3.min.js"></script>
+<script src="stackedBarChartData.js" type="text/javascript"></script>
+<script src="stackedBarChartJS.js" type="text/javascript"></script>
+<link href="stackedBarChartStyle.css" rel="stylesheet" />
+<script>
+
+function layout() {
+	this.State;
+	this.meas1;
+	this.meas2;
+	this.meas3;
+	this.meas4;
+	this.meas5;
+	this.meas6;
+	this.meas7;
+}
+
+var disLst = new Array();
+var datalist = new Array();
+for (var i = 1; i < dataSet.length; i++) {
+
+		var tmpList = new layout();
+		
+		if(disLst.indexOf(dataSet[i][0]) == -1){
+		tmpList.State = dataSet[i][0];
+		tmpList.meas1 = dataSet[i][1];
+		tmpList.meas2 = dataSet[i][2];
+		tmpList.meas3 = dataSet[i][3];
+		tmpList.meas4 = dataSet[i][4];
+		tmpList.meas5 = dataSet[i][5];
+		tmpList.meas6 = dataSet[i][6];
+		tmpList.meas7 = dataSet[i][7];
+		
+		datalist.push(tmpList);
+		}
+}
+
+stackedBarChart.draw(datalist, 960, 500);
+
+</script>

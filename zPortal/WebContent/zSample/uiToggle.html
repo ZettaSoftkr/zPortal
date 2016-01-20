@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8">
+<TITLE>zViewer</TITLE>
+<LINK type="text/css" rel="stylesheet" href="../assets/css/jquery-ui.css" />
+<LINK type="text/css" rel="stylesheet" href="../assets/css/font-awesome/css/font-awesome.min.css" />
+<SCRIPT type="text/javascript" src="../assets/js/jquery-2.1.4.min.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="../assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
+	
+	<style>
+	#toolbar {
+		padding: 2px;
+		display: inline-block;
+	}
+	/* support: IE7 */
+	*+html #toolbar {
+		display: inline;
+	}
+	
+	/* Allow Font Awesome Icons in lieu of jQuery UI and only apply when using a FA icon */
+	.ui-icon[class*=" fa-"] {
+	    background: none repeat scroll 0 0 transparent;
+	    text-indent: 0; 
+	    margin-top: -0.5em;
+	}
+
+	</style>
+	<script>
+	$(function() {
+		$( "#beginning" ).button({
+			text: false,
+			icons: {
+				primary: "fa fa-neuter"
+			}
+		});
+		$( "#rewind" ).button({
+			text: false,
+			icons: {
+				primary: "fa fa-camera-retro"
+			}
+		});
+		$( "#play" ).button({
+			text: false,
+			icons: {
+				primary: "fa fa-asterisk"
+			}
+		})
+		.click(function() {
+			var options;
+			if ( $( this ).text() === "play" ) {
+				options = {
+					label: "pause",
+					icons: {
+						primary: "ui-icon-pause"
+					}
+				};
+			} else {
+				options = {
+					label: "play",
+					icons: {
+						primary: "ui-icon-play"
+					}
+				};
+			}
+			$( this ).button( "option", options );
+		});
+		$( "#stop" ).button({
+			text: false,
+			icons: {
+				primary: "ui-icon-stop"
+			}
+		})
+		.click(function() {
+			$( "#play" ).button( "option", {
+				label: "play",
+				icons: {
+					primary: "ui-icon-play"
+				}
+			});
+		});
+		$( "#forward" ).button({
+			text: false,
+			icons: {
+				primary: "ui-icon-seek-next"
+			}
+		});
+		$( "#end" ).button({
+			text: false,
+			icons: {
+				primary: "ui-icon-seek-end"
+			}
+		});
+		$( "#shuffle" ).button().click(function() {
+			if($( "#shuffle" ).val() == 'true'){
+				$( "#shuffle" ).val('false');
+			} else {
+				$( "#shuffle" ).val('true');
+			}
+		});
+		$( "#repeat" ).buttonset();
+
+	
+	//------------------menuToolbar-----------------------
+		$( "#filters" ).buttonset();
+
+		$("#filters").children().each(function (){
+			if(this.type != 'checkbox'){
+				$("#" + this.id).mouseout(function(){
+					if(this.attr("aria-pressed") == 'true'){
+						label.addClass("ui-state-active");
+					}
+					else{
+						label.remodeClass("ui-state-active");
+					}
+					
+				});
+			}
+		});
+
+		
+		$("#depths").buttonset();
+		$( "#saveBtn4" ).button().click(function() {
+			runFilter();
+		});
+		$( "#saveBtn3" ).button().click(function() {
+			saveMenu();
+		});
+	
+	});
+	
+	function runFilter(){
+		var filters = [];
+		$("#filters").children().each(function (){
+			if(this.type != 'checkbox'){
+				var value = $("#" + this.id).attr("aria-pressed");
+				filters.push([this.id.split('_')[1], value]);
+			}
+		});
+		
+		var depth = null;
+		$("#depths").children().each(function (){
+			if(this.type == 'radio' && this.checked){
+				depth = this.value;
+			}
+		});
+		
+		alert("filters:" + JSON.stringify(filters) + "\n" + "depth:" + depth);
+	}
+	</script>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="toolbar" class="ui-widget-header ui-corner-all">
+	<button id="beginning">go to beginning</button>
+	<button id="rewind">rewind</button>
+	<button id="play">play</button>
+	<button id="stop">stop</button>
+	<button id="forward">fast forward</button>
+	<button id="end">go to end</button>
+
+	<input type="checkbox" id="shuffle" value='true'><label for="shuffle">Shuffle</label>
+
+	<span id="repeat">
+		<input type="radio" id="repeat0" name="repeat" checked="checked"><label for="repeat0">No Repeat</label>
+		<input type="radio" id="repeat1" name="repeat"><label for="repeat1">Once</label>
+		<input type="radio" id="repeatall" name="repeat"><label for="repeatall">All</label>
+	</span>
+</div>
+<div id="menuToolbar" class="ui-widget-header ui-corner-all">
+	<span id="filters">
+		<input type="checkbox" name="filter1" id="ck_Folder" ><label id="lb_Folder" class="ui-state-active" aria-pressed="true" for="ck_Folder">폴더</label></input>
+		<input type="checkbox" name="filter2" id="ck_Program" ><label id="lb_Program" class="ui-state-active" aria-pressed="true"  for="ck_Program">프로그램</label></input>
+		<input type="checkbox" name="filter3" id="ck_Report" ><label id="lb_Report" class="ui-state-active" aria-pressed="true"  for="ck_Report">보고서</label></input>
+		<input type="checkbox" name="filter4" id="ck_Link" ><label id="lb_Link" class="ui-state-active" aria-pressed="true"  for="ck_Link">링크</label></input>
+		<input type="checkbox" name="filter5" id="ck_Org"  ><label id="lb_Org" aria-pressed="false"  for="ck_Org">조직</label></input>
+		<input type="checkbox" name="filter6" id="ck_User"  ><label id="lb_User" aria-pressed="false"  for="ck_User">사용자</label></input>
+		<input type="checkbox" name="filter7" id="ck_UserGroup"  ><label id="lb_UserGroup" aria-pressed="false"  for="ck_UserGroup">사용자그룹</label></input>
+		<input type="checkbox" name="filter8" id="ck_MenuGroup" ><label id="lb_MenuGroup" aria-pressed="false"  for="ck_MenuGroup">메뉴그룹</label></input>
+	</span>
+	<span id="depths">
+		<input type="radio" name="Depth" id="ck_Depth1" value="1" checked><label id="lb_Depth1" for="ck_Depth1">1</label></input>
+		<input type="radio" name="Depth" id="ck_Depth2" value="2" ><label id="lb_Depth2" for="ck_Depth2">2</label></input>
+		<input type="radio" name="Depth" id="ck_Depth3" value="3" ><label id="lb_Depth3" for="ck_Depth3">3</label></input>
+		<input type="radio" name="Depth" id="ck_Depth4" value="4" ><label id="lb_Depth4" for="ck_Depth4">4</label></input>
+	</span>
+	<span style="float:right">
+		<button id="saveBtn4" type="button" >실행</button>
+		<button id="saveBtn3" type="button" >저장</button>
+	</span>
+	
+</div>
+
+
+</body>
+</html>

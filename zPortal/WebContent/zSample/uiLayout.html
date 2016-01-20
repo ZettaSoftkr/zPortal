@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<script src="../assets/js/jquery-2.1.4.min.js"></script>
+
+<link rel="stylesheet" href="../assets/css/font-awesome/css/font-awesome.css">
+<link rel="stylesheet" href="../assets/css/dockspwan/dock-manager.css">
+<link rel="stylesheet" href="../assets/css/dockspwan/dock-wheel.css">
+<link rel="stylesheet" href="../assets/css/dockspwan/dock-manager-style.css">
+<script src="../assets/js/dockspwan/dockspawn.js" type="text/javascript"></script>
+
+
+<script src="../assets/js/jquery-ui/jquery-ui.min.js"></script>
+<script src="../zVM/model/zMRootNode.js"></script>
+<script src="../zVM/model/zMenuNode.js"></script>
+<script src="../zVM/model/zTree.js"></script>
+<script src="../zVM/model/zOrg.js"></script>
+
+<link rel="stylesheet" href="../assets/css/flick/jquery-ui.css" />
+<link rel="stylesheet" href="../assets/css/bootstrap/bootstrap.min.css">
+<link href="../jspanel/jquery.jspanel.css" rel="stylesheet">
+
+
+<script src="../assets/js/bootstrap/bootstrap.min.js"></script>
+<SCRIPT type="text/javascript" src="../assets/js/mobile-detect.min.js"></SCRIPT>
+<script src="../assets/js/jquery.ui.touch-punch.min.js"></script>
+<script src="../jspanel/jquery.jspanel.js"></script>
+
+<link rel="stylesheet" href="../assets/css/menu.css">
+
+<style>
+body {
+	background-color: #F8F8F8;
+	font-family: 'Open Sans', sans-serif;
+	font-size: 14px;
+	font-weight: normal;
+	line-height: 1.2em;
+	margin: 0px;
+	overflow: hidden;
+	position: fixed;
+}
+
+div {
+	-webkit-user-select: none; /* Chrome/Safari */
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE10+ */
+	/* Rules below not implemented in browsers yet */
+	-o-user-select: none;
+	user-select: none;
+}
+
+.panel-header {
+	background-color: #000;
+	color: #888;
+	width: 100%;
+	height: 46px;
+}
+
+.panels {
+	position: relative;
+}
+
+.vertical {
+	background-color: red;
+	position: relative;
+}
+
+.horizontal {
+	background-color: blue;
+	float: left;
+}
+</style>
+</head>
+
+<script>
+	var parameters = location.search.substring(1).split("&");
+	var fileName = "";
+	var objectKey = null;
+	var reports = null;
+	var currentTree = null;
+
+	if (parameters.length == 1) {
+		fileName = parameters[0].split("=")[1];
+	} else if (parameters.length == 2) {
+		fileName = parameters[0].split("=")[1];
+		objectKey = parameters[1].split("=")[1];
+	}
+
+	//         var dockManager,
+	//             storeKey = 'lastState';
+
+	//         function refresh() {
+	//              localStorage.setItem(storeKey, '');
+	//              location.reload();
+	//         }
+
+	window.onload = function() {
+		// Convert a div to the dock manager. Panels can then be docked on to it
+		//             var divDockManager = document.getElementById('my_dock_manager');
+		//             dockManager = new dockspawn.DockManager(divDockManager);
+		//             dockManager.initialize();
+
+		//             var lastState = localStorage.getItem(storeKey);
+		//             if (lastState) {
+		//                 dockManager.loadState(lastState);
+		//             }
+
+		// Let the dock manager element fill in the entire screen
+		window.onresize = function() {
+			//                 dockManager.resize(
+			//                     window.innerWidth - (divDockManager.clientLeft + divDockManager.offsetLeft),
+			//                     window.innerHeight - (divDockManager.clientTop + divDockManager.offsetTop)
+			//                 );
+		};
+		window.onresize();
+
+		//             dockManager.addLayoutListener({
+		//                 onDock: function(self, dockNode){
+		//                     console.log('onDock: ', self, dockNode);
+		// //                     localStorage.setItem(storeKey, dockManager.saveState());
+		//                 },
+		//                onUndock:function(self, dockNode){
+		//                     console.log('onUndock: ', self, dockNode);
+		// //                     localStorage.setItem(storeKey, dockManager.saveState());
+		//                 },
+		//                 onCreateDialog:function(self, dialog){
+		//                     console.log('onCreateDialog: ', self, dialog);
+		// //                     localStorage.setItem(storeKey, dockManager.saveState());
+		//                 },
+		//                 onChangeDialogPosition:function(self, dialog, x, y){
+		//                     console.log('onCreateDialog: ', self, dialog, x, y);
+		// //                     localStorage.setItem(storeKey, dockManager.saveState());
+		//                 },
+		//                 onResumeLayout:function(self){
+		//                     console.log('onResumeLayout: ', self);
+		// //                     localStorage.setItem(storeKey, dockManager.saveState());
+		//                },
+		//                onClosePanel:function(self, panel){
+		//                     console.log('onClosePanel: ', self, panel);
+		// //                     localStorage.setItem(storeKey, dockManager.saveState());
+		//                },
+		//                onHideDialog:function(self, dialog){
+		//                     console.log('onHideDialog: ', self, dialog);
+		// //                     localStorage.setItem(storeKey, dockManager.saveState());
+		//                },
+		//                onShowDialog:function(self, dialog){
+		//                     console.log('onShowDialog: ', self, dialog);
+		// //                     localStorage.setItem(storeKey, dockManager.saveState());
+		//                },
+		//                onTabsReorder:function(self, dialog){
+		//                     console.log('onTabsReorder: ', self, dialog);
+		// //                     localStorage.setItem(storeKey, dockManager.saveState());
+		//                }
+		//             });
+
+		dashboardLoad();
+	};
+
+	// 3개의 순차적인 ajax call
+	//1. menu정보, 2.레이아웃 , 3. 레포트정보
+	function dashboardLoad() {
+
+		$.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/load.do",
+			dataType : "json",
+			success : function(msg) {
+				var rootNode = new zMRootNode();
+				rootNode.fromObject(msg);
+				rootNode.setTypeFiltering([ 'F', 'D', 'R', 'V', 'L' ]);
+
+				var treeRoot = new zTree('#');
+				treeRoot.setDataRootNode(rootNode);
+
+				console.info("initFromLinkModel started rootNode", JSON.stringify(rootNode));
+				var tree = treeRoot.initFromLinkModel(rootNode, treeRoot);
+				currentTree = tree;
+
+				$.ajax({
+					type : "POST",
+					url : "/zPortal/modelManager/load.do",
+					dataType : "json",
+					success : function(msg) {
+						reports = msg;
+						init(reports);
+
+						$.ajax({
+							type : "POST",
+							url : "/zPortal/modelManager/load.do",
+							dataType : "json",
+							success : function(msg) {
+								// 	        						dockManager.loadState(JSON.stringify(msg));
+								//hideLayout(reports);
+								setPanels(msg);
+
+							},
+							error : function(request, status, error) {
+								alert("error:" + error);
+							},
+							data : {
+								fileName : fileName,
+								objectKey : objectKey + '_state'
+							}
+						});
+					},
+					error : function(request, status, error) {
+						alert("error:" + error);
+					},
+					data : {
+						fileName : fileName,
+						objectKey : objectKey
+					}
+				});
+			},
+			error : function(request, status, error) {
+				alert("error:" + error);
+			},
+			data : {
+				fileName : 'system',
+				objectKey : 'menu'
+			}
+		});
+	}
+
+	function init(reports) {
+		//        		for (var i = 0 ; i < reports.length ; i++){
+		//        			var report = reports[i];
+		//        			$("#panels").append('<div id="report' +  report.id + '" data-panel-caption="' + report.id + '" class="report" style="border: 1px solid gray;"></div>');
+		//        		}
+	}
+
+	function hideLayout(reports) {
+		$("#my_dock_manager").hide();
+	}
+
+	function setPanels(model) {
+		console.info('reports.length', reports.length);
+		for (var i = 0; i < reports.length; i++) {
+			var report = reports[i];
+
+			var node = currentTree.findNode(currentTree, report.id);
+			if (node == null) {
+				alert("잘못된 아이디입니다.");
+				return;
+			}
+
+			var $newPanel = $.jsPanel({
+				title : node.data.data.menuNm,
+				theme : "light",
+           	    position: 	report.position,
+           	    size: { width: report.width, height: report.height },
+				iframe : {
+					src : loadReportHtml(node),
+					style : {
+						"display" : "none",
+						"border" : "10px solid transparent"
+					},
+					width : '100%',
+					height : '100%'
+				},
+				callback : function(panel) {
+					$("iframe", panel).load(function(e) {
+						$(e.target).fadeIn(100);
+					});
+				}
+			});
+			//$newPanel.maximize();
+		}
+	}
+
+	function loadReportHtml(node) {
+
+		var key = node.id;
+		var menuTp = node.data.data.menuTp;
+		var text = node.data.data.menuNm;
+		var dc = node.data.data.dc
+
+		switch (menuTp) {
+		case 'R':
+			if (editProcess == 'edit') {
+				return "/zPortal/zVM/zProcessManager.html?fileName=" + text;
+			} else {
+				return "/zPortal/zVM/zRViewer.html?fileName=" + text;
+			}
+		case 'D':
+			if (editProcess == 'edit') {
+				return "/zPortal/zDashboard/zDashboardManager.html?fileName=dashboards&objectKey=" + text;
+			} else {
+				return "/zPortal/zDashboard/zDViewer.html?fileName=dashboards&objectKey=" + text;
+			}
+		case 'F':
+			return;
+		case 'L':
+			return dc;
+		case 'H': //home
+			return '/zPortal/zVM/zViewer.html';
+		default:
+			alert('알수없는 메뉴입니다.\n 관리자에게 메뉴를 확인하세요.');
+			return "";
+		}
+	}
+</script>
+<body oncontextmenu="return false;">
+	<div id="my_dock_manager" class="my-dock-manager"></div>
+	<div id="panels"></div>
+</body>
+</html>
+</html>

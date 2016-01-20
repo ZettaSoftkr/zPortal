@@ -1,0 +1,268 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>Planogram</title>
+<meta name="description" content="An editor for defining planograms: visual displays of merchandise." />
+<!-- Copyright 1998-2015 by Northwoods Software Corporation. -->
+<meta charset="UTF-8">
+<script src="../assets/js/go/go.js"></script>
+<script src="../assets/js/jquery-2.1.4.min.js"></script>
+<script src="../assets/js/jquery-ui/jquery-ui.min.js"></script>
+<style type="text/css">
+.ui-accordion .ui-accordion-content {
+	padding: 1px;
+}
+</style>
+<script id="code">
+	var $ = go.GraphObject.make;
+	
+	var vLayoutInfos = null;
+	var currentLayout = 0;
+	
+	function layout() {
+		myDiagram.layoutDiagram(true);
+	}
+	
+	function saveCurrent() {
+		alert(JSON.stringify(myDiagram.model.nodeDataArray));
+		vLayoutInfos[currentLayout] = myDiagram.model.nodeDataArray;
+	}
+	
+	function newLayout() {
+		var index = vLayoutInfos.length;
+		vLayoutInfos[index] = [
+	                         	  { key: "layout" + index, text : "layout" + index, isGroup: true, category:"Layout", pos: "0 0", size: "500 300" },
+	                              { key: "L1", category:"Layer", group : "layout" + index, isGroup: true, pos: "0 0", size: "250 250" },
+	                              { key: "L2", category:"Layer", group : "layout" + index, isGroup: true, pos: "250 0", size: "250 250" },
+	                              { key: "L3", category:"Layer", group : "layout" + index, isGroup: true, pos: "0 250", size: "100 100" },
+	                              { key: "L4", category:"Layer", group : "layout" + index, isGroup: true, pos: "200 200", size: "100 100" }
+	                            ];
+		setupLayout();
+	}
+	
+	function loadLayout(){
+		jQuery.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/load.do",
+			dataType : "json",
+			success : function(msg) {
+				vLayoutInfos = JSON.parse(msg);
+				
+				setupLayout();
+				showLayout(currentLayout);				
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : {fileName:'system', objectKey:'VLayoutInfo'}
+		});
+	}
+	
+	function setupLayout(){
+		var html = '';
+		for(var index in vLayoutInfos){
+			html +='<a href=\'javascript:showLayout(' + index +');\'>' + index + '번 레이아웃</a><BR>';
+		}
+		
+		jQuery("#layouts").html(html);
+	}
+	
+	function showLayout(index){		
+		currentLayout = index;
+		myDiagram.model = new go.GraphLinksModel(vLayoutInfos[index]);		
+		layout();
+	}
+	
+	function saveLayout() {
+		var sendInfo = {
+			fileName : "system",
+			objectKey : "VLayoutInfo",
+			content : JSON.stringify(vLayoutInfos)
+		};
+	
+		jQuery.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/save.do",
+			dataType : "json",
+			success : function(msg) {
+				if (msg) {
+					alert("저장되었습니다.");
+				} else {
+					alert("저장할수 없습니다.");
+				}
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : sendInfo
+		});
+	}
+
+
+
+  function init() {
+
+    // Initialize the main Diagram
+    var cellSize = new go.Size(10, 10);
+
+    myDiagram = window.myDiagram =
+      $(go.Diagram, "myDiagram",
+        {
+          grid: $(go.Panel, "Grid",
+                  { gridCellSize: cellSize },
+                  $(go.Shape, "LineH", { stroke: "lightgray" }),
+                  $(go.Shape, "LineV", { stroke: "lightgray" })
+                ),
+          // support grid snapping when dragging and when resizing
+          "draggingTool.isGridSnapEnabled": true,
+          "draggingTool.gridSnapCellSpot": go.Spot.Center,
+          "resizingTool.isGridSnapEnabled": true,
+          allowDrop: true,  // handle drag-and-drop from the Palette
+          "undoManager.isEnabled": true
+        });
+
+    // Regular Nodes represent items to be put onto racks.
+    // Nodes are currently resizable, but if that is not desired, just set resizable to false.
+    myDiagram.nodeTemplate =
+      $(go.Node, "Auto",
+        { resizable: true, resizeObjectName: "SHAPE",
+          // because the gridSnapCellSpot is Center, offset the Node's location
+          locationSpot: new go.Spot(0, 0, cellSize.width / 2, cellSize.height / 2)
+        },
+        // always save/load the point that is the top-left corner of the node, not the location
+        new go.Binding("position", "pos", go.Point.parse).makeTwoWay(go.Point.stringify),
+        // this is the primary thing people see
+        $(go.Shape, "Rectangle",
+          { name: "SHAPE",
+            fill: "white",
+            minSize: cellSize,
+            desiredSize: cellSize  // initially 1x1 cell
+          },
+          new go.Binding("fill", "color"),
+          new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify)),
+        // with the textual key in the middle
+        $(go.TextBlock,
+          { alignment: go.Spot.Center },
+          new go.Binding("text", "key"))
+      );  // end Node
+      
+      
+      myDiagram.nodeTemplateMap.add("Layout",
+  		  $(go.Node, "Auto",
+  			        { resizable: false, pickable: false, selectable: false,
+  			          // because the gridSnapCellSpot is Center, offset the Node's location
+  			          locationSpot: new go.Spot(0, 0, 500,300)
+  			        },
+  			        // always save/load the point that is the top-left corner of the node, not the location
+  			        new go.Binding("position", "pos", go.Point.parse).makeTwoWay(go.Point.stringify),
+  			        // this is the primary thing people see
+  			        $(go.Shape, "Rectangle",
+  			          { name: "SHAPE",
+  			            fill: "white",
+  			            minSize: cellSize,
+  			            desiredSize: cellSize  // initially 1x1 cell
+  			          },
+  			          new go.Binding("fill", "color"),
+  			          new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify)),
+  			        // with the textual key in the middle
+  			        $(go.TextBlock,
+  			          { alignment: go.Spot.Center },
+  			          new go.Binding("text", "key"))
+  			      )); 
+      
+      myDiagram.nodeTemplateMap.add("Layer",
+      		  $(go.Node, "Auto",
+      			        { resizable: true, resizeObjectName: "SHAPE",
+		      	          // because the gridSnapCellSpot is Center, offset the Node's location
+		      	          locationSpot: new go.Spot(0, 0, cellSize.width / 2, cellSize.height / 2)
+      			        },
+      			        // always save/load the point that is the top-left corner of the node, not the location
+      			        new go.Binding("position", "pos", go.Point.parse).makeTwoWay(go.Point.stringify),
+      			        // this is the primary thing people see
+      			        $(go.Shape, "Rectangle",
+      			          { name: "SHAPE",
+      			            fill: "white",
+      			            minSize: cellSize,
+      			            desiredSize: cellSize  // initially 1x1 cell
+      			          },
+      			          new go.Binding("fill", "color"),
+      			          new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify)),
+      			        // with the textual key in the middle
+      			        $(go.TextBlock,
+      			          { alignment: go.Spot.Center },
+      			          new go.Binding("text", "key"))
+      			      )); 
+
+    var groupFill = "rgba(128,128,128,0.2)";
+    var groupStroke = "gray";
+    var dropFill = "rgba(128,255,255,0.2)";
+    var dropStroke = "red";
+
+    myDiagram.groupTemplate =
+      $(go.Group,
+        { resizable: true, resizeObjectName: "SHAPE",
+          // because the gridSnapCellSpot is Center, offset the Group's location
+          locationSpot: new go.Spot(0, 0, cellSize.width/2, cellSize.height/2)
+        },
+        // always save/load the point that is the top-left corner of the node, not the location
+        new go.Binding("position", "pos", go.Point.parse).makeTwoWay(go.Point.stringify),
+        {
+          mouseDrop: function(e, grp) {
+            var ok = grp.addMembers(grp.diagram.selection, true);
+            if (!ok) grp.diagram.currentTool.doCancel();
+          },
+          handlesDragDropForMembers: true  // don't need to define handlers on member Nodes and Links
+        },
+        $(go.Shape, "Rectangle",  // the rectangular shape around the members
+          { name: "SHAPE",
+            fill: groupFill,
+            stroke: groupStroke,
+            minSize: new go.Size(cellSize.width*2, cellSize.height*2)
+          },
+          new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify),
+          new go.Binding("fill", "isHighlighted", function(h) { return h ? dropFill : groupFill; }).ofObject(),
+          new go.Binding("stroke", "isHighlighted", function(h) { return h ? dropStroke: groupStroke; }).ofObject())
+      );
+
+    // decide what kinds of Parts can be added to a Group or to top-level
+    myDiagram.commandHandler.memberValidation = function(grp, node) {
+      if (grp instanceof go.Group && node instanceof go.Group) return false;  // cannot add Groups to Groups
+      return true;
+    };
+
+    // what to do when a drag-drop occurs in the Diagram's background
+    myDiagram.mouseDrop = function(e) {
+      // when the selection is dropped in the diagram's background,
+      // make sure the selected Parts no longer belong to any Group
+      var ok = myDiagram.commandHandler.addTopLevelParts(myDiagram.selection, true);
+      if (!ok) myDiagram.currentTool.doCancel();
+    };
+
+    // For this sample, automatically show the state of the diagram's model on the page
+    myDiagram.model.addChangedListener(function(e) {
+      if (e.isTransactionFinished) {
+        document.getElementById("savedModel").textContent = myDiagram.model.toJson();
+      }
+    });
+    
+    loadLayout();
+  }
+</script>
+</head>
+<body onload="init()">
+	<div id="sample">
+		<div style="width: 100%; white-space: nowrap;">
+			<div id="layouts"></div>
+			<button id="saveBtn2" class="elementBtn" type="button" onclick="newLayout()">레이아웃추가</button>
+			<button id="saveBtn4" class="elementBtn" type="button" onclick="saveCurrent()">변경내용저장</button>
+			<button id="saveBtn3" class="elementBtn" type="button" onclick="saveLayout()">파일저장</button>
+			<span style="display: inline-block; vertical-align: top; padding: 5px; width: 530px; overflow: hidden;">
+				<div id="myDiagram" style="border: solid 1px black; height: 320px; overflow: hidden;"></div>
+			</span>
+		</div>
+		<div style="display: inline">
+			<pre id="savedModel"></pre>
+		</div>
+	</div>
+</body>
+</html>

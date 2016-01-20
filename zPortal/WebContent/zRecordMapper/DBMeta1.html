@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>Zetta Data Mapper</title>
+<meta charset="UTF-8">
+<script src="../assets/js/go/go.js"></script>
+<link rel="stylesheet" href="../assets/js/jquery-ui-1.11.4/jquery-ui.css" />
+<script src="../assets/js/jquery-2.1.4.min.js"></script>
+<script src="../assets/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>
+<script src="../assets/js/go/DrawCommandHandler.js"></script>
+<script src="BPMNClasses.js"></script>
+<script src="DBMeta.js"></script>
+<script src="dataSet.js"></script>
+<link href="style.css" rel="stylesheet" type="text/css" />
+</head>
+<body onload="init()">
+	<div>	
+		<div id="currentFile"><select id='zDbChoice'></select></div>
+		<div id="PaletteAndDiagram">			
+			<div id="sideBar">
+				<span style="display: inline-block; vertical-align: top; padding: 5px; width: 100%">
+					<div id="accordion">
+						<h4>사용가능데이터개체</h4>
+						<div>
+							<div id="myPaletteLevel1" class="myPalette"></div>
+						</div>
+						<h4>사용가능모델개체</h4>
+						<div>
+							<div id="myPaletteLevel2" class="myPalette"></div>
+						</div>
+					</div>
+				</span>
+			</div>
+			<div id="myDiagram"></div>
+		</div>
+	</div>
+	<textarea id="mySavedModel"></textarea>
+</body>
+<script>
+	var db_tables = [];
+	for (var i = 0, l = dataSet.length; i < l; i++) {
+		if (db_tables.indexOf(dataSet[i][1]) === -1) {
+			db_tables.push(dataSet[i][1]);
+		}
+	}
+
+	var db_option = '';
+	for (var i = 0; i < db_tables.length; i++) {
+		db_option += '<option value="'+ db_tables[i] + '">' + db_tables[i] + '</option>';
+	}
+
+	jQuery('#zDbChoice').append(db_option);
+
+</script>
+</html>

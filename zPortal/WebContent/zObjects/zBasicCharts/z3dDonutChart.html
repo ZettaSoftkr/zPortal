@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body oncontextmenu="return false;">
+<button onClick="changeData()">Change Data</button>
+<script src="d3.v3.min.js"></script>
+<script src="donut3D.js"></script>
+<link href="3dDonutChartStyle.css" rel="stylesheet" />
+<script>
+
+var salesData=[
+	{label:"Basic", value:13.123, color:"#3366CC"},
+	{label:"Plus", value:23.444, color:"#DC3912"},
+	{label:"Lite", value:8.7, color:"#FF9900"},
+	{label:"Elite", value:15.987, color:"#109618"},
+	{label:"Delux", value:5.123, color:"#990099"}
+];
+
+
+var svg = d3.select("body").append("svg").attr("width",700).attr("height",300);
+
+svg.append("g").attr("id","salesDonut");
+
+Donut3D.draw("salesDonut", salesData, 150, 150, 130, 100, 30, 0.4);
+	
+function changeData(){
+	Donut3D.transition("salesDonut", randomData(), 130, 100, 30, 0.4);
+}
+
+function randomData(){
+	return salesData.map(function(d){ 
+		return {label:d.label, value:1000*Math.random(), color:d.color};});
+}
+
+</script>
+</body>

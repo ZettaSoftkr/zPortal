@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>Zetta Data Mapper</title>
+<meta charset="UTF-8">
+<script src="../assets/js/go/go.js"></script>
+<link rel="stylesheet" href="../assets/js/jquery-ui-1.11.4/jquery-ui.css" />
+<script src="../assets/js/jquery-2.1.4.min.js"></script>
+<script src="../assets/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>
+<script src="../assets/js/go/DrawCommandHandler.js"></script>
+<script src="BPMNClasses.js"></script>
+<script src="DBMeta.js"></script>
+<script src="model/zField.js"></script>
+<script src="model/zTable.js"></script>
+<script src="dataSet.js"></script>
+<link href="style.css" rel="stylesheet" type="text/css" />
+</head>
+<body onload="init(zTables)">
+	<div>	
+		<div id="currentFile"><select id='zDbChoice'></select></div>
+		<div id="dataPaletteAndDiagram">			
+			<div id="dataSideBar">
+				<span style="display: inline-block; vertical-align: top; padding: 5px; width: 100%">
+					<div id="dataAccordion">
+						<h4>데이터개체</h4>
+						<div style="display: inline-block; vertical-align: top; padding: 5px; width: 100%; font-size: 10px">
+							<div id="dataPaletteLevel1" class="dataPalette"></div>
+						</div>
+						<h4>모델개체</h4>
+						<div style="display: inline-block; vertical-align: top; padding: 5px; width: 100%; font-size: 10px">
+							<div id="dataPaletteLevel2" class="dataPalette"></div>
+						</div>
+					</div>
+				</span>
+			</div>
+			<div id="dataDiagram"></div>
+		</div>
+	</div>
+</body>
+<script>
+// 	var db_tables = [];
+// 	for (var i = 0, l = dataSet.length; i < l; i++) {
+// 		if (db_tables.indexOf(dataSet[i][1]) === -1) {
+// 			db_tables.push(dataSet[i][1]);
+// 		}
+// 	}
+
+// 	var db_option = '';
+// 	for (var i = 0; i < db_tables.length; i++) {
+// 		db_option += '<option value="'+ db_tables[i] + '">' + db_tables[i] + '</option>';
+// 	}
+
+// 	jQuery('#zDbChoice').append(db_option);
+
+	var db_tables = [];
+	for (var i = 0, l = dataSet.length; i < l; i++) {
+		if (db_tables.indexOf(dataSet[i][1]) === -1) {
+			db_tables.push(dataSet[i][1]);
+		}
+	}
+
+	var zTables = new Array();
+
+	var db_option = '';
+	for (var i = 0; i < db_tables.length; i++) {
+		var fields = new Array();
+		var table = new zTable();
+		table.key = db_tables[i];
+		table.category = "record";
+		table.text = db_tables[i];
+		
+		for (var j = 0; j < dataSet.length; j++) {
+			if (db_tables[i] == dataSet[j][1]) {
+				var field = new zField(dataSet[j][6],dataSet[j][6],dataSet[j][7],"#F7B84B", "Ellipse");
+				fields.push(field);
+			}
+		}
+		table.fields = fields;
+		zTables.push(table);
+	}
+
+</script>
+</html>

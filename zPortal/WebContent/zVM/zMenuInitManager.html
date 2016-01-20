@@ -1,0 +1,425 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>ZettaSoft-Menu Manager</title>
+        <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+            <script src="../assets/js/go/go.js"></script>
+            <link rel="stylesheet" href="../assets/js/jquery-ui-1.11.4/jquery-ui.css" />
+            <script src="../assets/js/jquery-2.1.4.min.js"></script>
+            <script src="../assets/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>
+            <script src="model/zMRootNode.js"></script>
+            <script src="model/zMenuLink.js"></script>
+            <script src="model/zMenuNode.js"></script>
+            <script src="model/zMenu.js"></script>
+            <link href="zVM.css" rel="stylesheet" type="text/css" />
+            <script id="code">
+	var parameters = location.search.substring(1).split("&");
+	
+	var temp = parameters[0].split("=");
+	var fileName = unescape(temp[1]);
+	temp = parameters[1].split("=");
+	var objectKey = unescape(temp[1]);
+	
+	//system 폴더의 main.json에서 1022개체 정보를 얻어서 데이터를 가져온다.
+	var sendInfo = {
+		fileName : fileName,
+		objectKey : objectKey
+	};
+	
+	$.ajax({
+		type : "POST",
+		url : "/zPortal/modelManager/getTableData.do",
+		dataType : "json",
+		success : function(msg) {
+			var dataSet = msg;
+			
+			var row = dataSet[0];
+			var header = {};
+			for (var i=0 ; i < row.length; i++)
+			{
+				header[row[i]] = i;
+			}
+			var rootId = "#";
+			var rootName = "root";
+			var depth = 3;
+			var rootNode = new zMRootNode(rootId, rootName, depth);
+			rootNode.getNodesWithIdAndDepth(dataSet, header, rootId, depth); 
+			
+		    var $ = go.GraphObject.make;  // for conciseness in defining templates
+	
+		    var yellowgrad = $(go.Brush, "Linear", { 0: "rgb(254, 201, 0)", 1: "rgb(254, 162, 0)" });
+		    var greengrad = $(go.Brush, "Linear", { 0: "#98FB98", 1: "#9ACD32" });
+		    var bluegrad = $(go.Brush, "Linear", { 0: "#B0E0E6", 1: "#87CEEB" });
+		    var redgrad = $(go.Brush, "Linear", { 0: "#C45245", 1: "#7D180C" });
+		    var whitegrad = $(go.Brush, "Linear", { 0: "#F0F8FF", 1: "#E6E6FA" });
+	
+		    var bigfont = "bold 12pt Helvetica, Arial, sans-serif";
+		    var smallfont = "bold 10pt Helvetica, Arial, sans-serif";
+	
+		    // Common text styling
+		    function textStyle() {
+		      return {
+		        margin: 6,
+		        wrap: go.TextBlock.WrapFit,
+		        textAlign: "center",
+		        editable: true,
+		        font: bigfont
+		      }
+		    }
+	
+		    myDiagram =
+		      $(go.Diagram, "myDiagram",
+		        {
+		          // have mouse wheel events zoom in and out instead of scroll up and down
+		          "toolManager.mouseWheelBehavior": go.ToolManager.WheelZoom,
+		          allowDrop: true,  // support drag-and-drop from the Palette
+// 		          initialAutoScale: go.Diagram.Uniform,
+		          "linkingTool.direction": go.LinkingTool.ForwardsOnly,
+		          initialContentAlignment: go.Spot.Center,
+		          layout: $(go.LayeredDigraphLayout, { isInitial: false, isOngoing: false, layerSpacing: 20 }),
+		          "undoManager.isEnabled": true
+		        });
+		    
+		    // this event handler is called when the diagram is first ready
+		    myDiagram.addDiagramListener("InitialLayoutCompleted", function(e) {
+// 		      // pick a random node data
+// 		      var data = myDiagram.model.nodeDataArray[];
+// 		      // find the corresponding Node
+// 		      var node = diagram.findNodeForData(data);
+// 		      // and center it and select it
+// 		      diagram.centerRect(node.actualBounds);
+// 		      diagram.select(node);
+		    });
+	
+		    // when the document is modified, add a "*" to the title and enable the "Save" button
+		    myDiagram.addDiagramListener("Modified", function(e) {
+		      var button = document.getElementById("SaveButton");
+		      if (button) button.disabled = !myDiagram.isModified;
+		      var idx = document.title.indexOf("*");
+		      if (myDiagram.isModified) {
+		        if (idx < 0) document.title += "*";
+		      } else {
+		        if (idx >= 0) document.title = document.title.substr(0, idx);
+		      }
+		    });
+	
+		    var defaultAdornment =
+		      $(go.Adornment, "Spot",
+		        $(go.Panel, "Auto",
+		          $(go.Shape, { fill: null, stroke: "dodgerblue", strokeWidth: 4 }),
+		          $(go.Placeholder)),
+		        // the button to create a "next" node, at the top-right corner
+		        $("Button",
+		          { alignment: go.Spot.TopRight,
+		            click: addNodeAndLink },  // this function is defined below
+		          new go.Binding("visible", "", function(a) { return !a.diagram.isReadOnly; }).ofObject(),
+		          $(go.Shape, "PlusLine", { desiredSize: new go.Size(6, 6) })
+		        )
+		      );
+	
+		    // define the Node template
+		    myDiagram.nodeTemplate =
+		      $(go.Node, "Auto", { 
+		    	  selectionAdornmentTemplate: defaultAdornment
+		    	},
+		        new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+		        // define the node's outer shape, which will surround the TextBlock
+		        $(go.Shape, "Rectangle",
+		          { fill: yellowgrad, stroke: "black",
+		            portId: "", fromLinkable: true, toLinkable: true, cursor: "pointer",
+		            toEndSegmentLength: 50, fromEndSegmentLength: 40 }),
+		        $(go.TextBlock, "프로그램",
+		          { margin: 6,
+		            font: bigfont,
+		            editable: true },
+		          new go.Binding("text", "text").makeTwoWay()),
+	            {
+	              contextMenu:
+	                $(go.Adornment, "Spot",
+	                  $(go.Placeholder, { padding: 5 }),
+	                  $("ContextMenuButton", $(go.TextBlock, "속성"),
+	                    { 
+	                	  click: function(e, obj) {
+		                		modifyProperties(obj.part.data);
+			              }
+		                })
+	              	)
+	             }
+		       );
+	
+		    myDiagram.nodeTemplateMap.add("Folder",
+		      $(go.Node, "Auto",
+		        new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+		        $(go.Shape, "RoundedRectangle",
+		          { fill: bluegrad,
+		          portId: "", fromLinkable: true, toLinkable: true, cursor: "pointer", fromEndSegmentLength: 40}),
+		        $(go.TextBlock, "폴더", textStyle(),
+		          new go.Binding("text", "text").makeTwoWay()),
+		          {
+		              contextMenu:
+		                $(go.Adornment, "Spot",
+		                  $(go.Placeholder, { padding: 5 }),
+		                  $("ContextMenuButton", $(go.TextBlock, "속성"),
+		                    { 
+		                	  click: function(e, obj) {
+			                		modifyProperties(obj.part.data);
+				              }
+			                })
+		              	)
+		             }
+		        ));
+	
+		    myDiagram.nodeTemplateMap.add("Report",
+		      $(go.Node, "Auto",
+		        new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+		        $(go.Shape, "RoundedRectangle",
+		          { fill: greengrad, portId: "", fromLinkable: true, toLinkable: true, toEndSegmentLength: 50 }),
+		        $(go.TextBlock, "보고서", textStyle(),
+		          new go.Binding("text", "text").makeTwoWay()),
+		          {
+	              contextMenu:
+	                $(go.Adornment, "Spot",
+	                  $(go.Placeholder, { padding: 5 }),
+	                  $("ContextMenuButton", $(go.TextBlock, "속성"),
+	                    { 
+	                	  click: function(e, obj) {
+		                		modifyProperties(obj.part.data);
+			              }
+		                })
+	              	)
+	             })
+	            );
+	
+		    // Undesired events have a special adornment that allows adding additional "reasons"
+		    var ProgramAdornment =
+		      $(go.Adornment, "Spot",
+		        $(go.Panel, "Auto",
+		          $(go.Shape, { fill: null, stroke: "dodgerblue", strokeWidth: 4 }),
+		          $(go.Placeholder)),
+		        // the button to create a "next" node, at the top-right corner
+		        $("Button",
+		          { alignment: go.Spot.BottomRight,
+		            click: addReason },  // this function is defined below
+		          new go.Binding("visible", "", function(a) { return !a.diagram.isReadOnly; }).ofObject(),
+		          $(go.Shape, "TriangleDown", { desiredSize: new go.Size(10, 10) })
+		        )
+		      );
+	
+		    var reasonTemplate = $(go.Panel, "Horizontal",
+		      $(go.TextBlock, "보고서명1",
+		        {
+		          margin: new go.Margin(4,0,0,0),
+		          maxSize: new go.Size(200, NaN),
+		          wrap: go.TextBlock.WrapFit,
+		          stroke: "whitesmoke",
+		          editable: true,
+		          font: smallfont
+		        },
+		        new go.Binding("text", "text").makeTwoWay())
+		      );
+	
+	
+		    myDiagram.nodeTemplateMap.add("Program",
+		      $(go.Node, "Auto",
+		        new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+		        { selectionAdornmentTemplate: ProgramAdornment },
+		        $(go.Shape, "RoundedRectangle",
+		          { fill: redgrad, portId: "", fromLinkable: true, toLinkable: true, toEndSegmentLength: 50 }),
+		        $(go.Panel, "Vertical", {defaultAlignment: go.Spot.TopLeft},
+	
+		          $(go.TextBlock, "보고서123", textStyle(),
+		            { stroke: "whitesmoke",
+		              minSize: new go.Size(80, NaN) },
+		            new go.Binding("text", "text").makeTwoWay()),
+	
+		          $(go.Panel, "Vertical",
+		            { defaultAlignment: go.Spot.TopLeft,
+		              itemTemplate: reasonTemplate },
+		            new go.Binding("itemArray", "reasonsList").makeTwoWay()
+		          )
+		        ),{
+		              contextMenu:
+			                $(go.Adornment, "Spot",
+			                  $(go.Placeholder, { padding: 5 }),
+			                  $("ContextMenuButton", $(go.TextBlock, "속성"),
+			                    { 
+			                	  click: function(e, obj) {
+				                		modifyProperties(obj.part.data);
+					              }
+				                })
+			              	)
+			             }
+		        ));
+	
+		    myDiagram.nodeTemplateMap.add("Link",
+		      $(go.Node, "Auto",
+		        new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+		        $(go.Shape, "Rectangle",
+		          { portId: "", fill: whitegrad, fromLinkable: true }),
+		        $(go.TextBlock, "링크",
+		          { margin: 9,
+		            maxSize: new go.Size(200, NaN),
+		            wrap: go.TextBlock.WrapFit,
+		            editable: true,
+		            font: smallfont },
+		          new go.Binding("text", "text").makeTwoWay()),
+		          {
+		              contextMenu:
+		                $(go.Adornment, "Spot",
+		                  $(go.Placeholder, { padding: 5 }),
+		                  $("ContextMenuButton", $(go.TextBlock, "속성"),
+		                    { 
+		                	  click: function(e, obj) {
+			                		modifyProperties(obj.part.data);
+				              }
+			                })
+		              	)
+		             }
+		        ));
+	
+		    // clicking the button on an Programnode inserts a new text object into the panel
+		    function addReason(e, obj) {
+		      var adorn = obj.part;
+		      if (adorn === null) return;
+		      e.handled = true;
+		      var arr = adorn.adornedPart.data.reasonsList;
+		      myDiagram.startTransaction("add reason");
+		      myDiagram.model.addArrayItem(arr, {});
+		      myDiagram.commitTransaction("add reason");
+		    }
+	
+		    // clicking the button of a default node inserts a new node to the right of the selected node,
+		    // and adds a link to that new node
+		    function addNodeAndLink(e, obj) {
+		      var adorn = obj.part;
+		      if (adorn === null) return;
+		      e.handled = true;
+		      var diagram = adorn.diagram;
+		      diagram.startTransaction("Add State");
+		      // get the node data for which the user clicked the button
+		      var fromNode = adorn.adornedPart;
+		      var fromData = fromNode.data;
+		      // create a new "State" data object, positioned off to the right of the adorned Node
+		      var toData = { text: "new" };
+		      var p = fromNode.location;
+		      toData.loc = p.x + 200 + " " + p.y;  // the "loc" property is a string, not a Point object
+		      // add the new node data to the model
+		      var model = diagram.model;
+		      model.addNodeData(toData);
+		      // create a link data from the old node data to the new node data
+		      var linkdata = {};
+		      linkdata[model.linkFromKeyProperty] = model.getKeyForNodeData(fromData);
+		      linkdata[model.linkToKeyProperty] = model.getKeyForNodeData(toData);
+		      // and add the link data to the model
+		      model.addLinkData(linkdata);
+		      // select the new Node
+		      var newnode = diagram.findNodeForData(toData);
+		      diagram.select(newnode);
+		      diagram.commitTransaction("Add State");
+		    }
+	
+		    // replace the default Link template in the linkTemplateMap
+		    myDiagram.linkTemplate =
+		      $(go.Link,  // the whole link panel
+		        new go.Binding("points").makeTwoWay(),
+		        { curve: go.Link.Bezier, toShortLength: 15 },
+		        new go.Binding("curviness", "curviness"),
+		        $(go.Shape,  // the link shape
+		          { stroke: "#2F4F4F", strokeWidth: 2.5 }),
+		        $(go.Shape,  // the arrowhead
+		          { toArrow: "kite", fill: "#2F4F4F", stroke: null, scale: 2 })
+		    );
+	
+		    myDiagram.linkTemplateMap.add("Link",
+		      $(go.Link, { selectable: false },
+		        $(go.Shape, { strokeWidth: 2, stroke: "darkgreen" })));
+		    
+		    var palette =
+		      $(go.Palette, "palette",  // create a new Palette in the HTML DIV element "palette"
+		        {
+		          // share the template map with the Palette
+		          nodeTemplateMap: myDiagram.nodeTemplateMap,
+		          autoScale: go.Diagram.Uniform  // everything always fits in viewport
+		        });
+	
+		    palette.model.nodeDataArray = [
+		      { category: "Folder" },
+		      { category: "Program"},
+		      { category: "Report" },
+		      { category: "Link" },
+		      {}
+		    ];
+	
+		    // read in the JSON-format data from the "mySavedModel" element
+		    myDiagram.model = go.Model.fromJson(JSON.stringify(rootNode));  
+		    
+		    layout();
+		    
+		    var myOverview = $(go.Overview, "myOverview", {
+		        observed: myDiagram,
+		        maxScale: 0.5,
+		        contentAlignment: go.Spot.Center
+		    });
+		    // change color of viewport border in Overview
+		   myOverview.box.elt(0).stroke = "dodgerblue";
+			
+		},
+		error : function(request, status, error) {
+			alert("request:" + request.responseText + "\n error:" + error);
+		},
+		data : sendInfo
+	});
+
+  
+	function layout() {
+		myDiagram.layoutDiagram(true);
+	}
+
+	//function saveMenu(fileName, objectKey, content) {
+	function saveMenu() {
+		var sendInfo = {
+			fileName : "system",
+			objectKey : "menu",
+			content : myDiagram.model.toJson()
+		};
+
+		$.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/save.do",
+			dataType : "json",
+			success : function(msg) {
+				if (msg) {
+					alert("저장되었습니다.");
+				} else {
+					alert("저장할수 없습니다.");
+				}
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : sendInfo
+		});
+	}
+	
+	function modifyProperties(data){
+		alert(JSON.stringify(data));
+	}
+
+            </script>
+        </head>
+        <body oncontextmenu="return false;">
+            <div>
+                <div style="width: 100%; white-space: nowrap;">
+                    <span style="display: inline-block; vertical-align: top; padding: 5px; width: 100px">
+                        <div id="palette" style="background-color: Snow; border: solid 1px gray; height: 280px"></div>
+                        <div class="handle">전체화면</div>
+                        <div id="myOverview"></div>
+                    </span>
+                    <span style="display: inline-block; vertical-align: top; padding: 5px; width: 85%">
+                        <div id="myDiagram" style="background-color: Snow; border: solid 1px gray; height: 480px"></div>
+                    </span>
+                </div>
+                <button id="saveBtn3" class="elementBtn" type="button" onclick="saveMenu()">저장</button>
+            </div>
+        </body>
+    </html>

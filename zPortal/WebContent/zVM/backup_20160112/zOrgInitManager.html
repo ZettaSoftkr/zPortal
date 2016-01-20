@@ -1,0 +1,415 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>ZettaSoft-Menu Manager</title>
+        <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+            <script src="../assets/js/go/go.js"></script>
+            
+            <script src="model/zMenuManager.js"></script>
+            <script src="model/zMRootNode.js"></script>
+            
+            <link href="zVM.css" rel="stylesheet" type="text/css" />
+            <LINK type="text/css" rel="stylesheet" href="../assets/css/jquery-ui.css" />
+			<SCRIPT type="text/javascript" src="../assets/js/jquery-2.1.4.min.js"></SCRIPT>
+			<SCRIPT type="text/javascript" src="../assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
+            <script id="code">
+    var fileName = 'system';
+    var objectKeyUser = '3003';
+    var objectKeyOrg = '3002';
+    var rootId = '0000000';
+	var backupModelStr = null;
+	var menuManager = new zMenuManager();
+	var users = null;	
+	
+	function init(){
+		
+		jQuery("#depths").buttonset();		
+		jQuery("#saveBtn4").button().click(function() {
+			runFilter();
+		});
+		
+		var $ = go.GraphObject.make;  // for conciseness in defining templates
+		
+	    var yellowgrad = $(go.Brush, "Linear", { 0: "rgb(254, 201, 0)", 1: "rgb(254, 162, 0)" });
+	    var greengrad = $(go.Brush, "Linear", { 0: "#98FB98", 1: "#9ACD32" });
+	    var bluegrad = $(go.Brush, "Linear", { 0: "#B0E0E6", 1: "#87CEEB" });
+	    var redgrad = $(go.Brush, "Linear", { 0: "#C45245", 1: "#7D180C" });
+	    var whitegrad = $(go.Brush, "Linear", { 0: "#F0F8FF", 1: "#E6E6FA" });
+
+	    var bigfont = "bold 12pt Helvetica, Arial, sans-serif";
+	    var smallfont = "bold 10pt Helvetica, Arial, sans-serif";
+
+	    // Common text styling
+	    function textStyle() {
+	      return {
+	        margin: 6,
+	        wrap: go.TextBlock.WrapFit,
+	        textAlign: "center",
+	        editable: true,
+	        font: bigfont
+	      }
+	    }
+
+       myFullDiagram = $(go.Diagram, "myFullDiagram",  // each diagram refers to its DIV HTML element by id
+            {
+              initialAutoScale: go.Diagram.Uniform,  // automatically scale down to show whole tree
+              contentAlignment: go.Spot.Center,  // center the tree in the viewport
+              isReadOnly: true,  // don't allow user to change the diagram
+              layout: $(go.TreeLayout,
+                        { angle: 90, sorting: go.TreeLayout.SortingAscending }),
+            });
+        myFullDiagram.nodeTemplate =$(go.Node, "Auto",
+	            { locationSpot: go.Spot.Center },
+	            new go.Binding("text", "key"),  // for sorting
+	            $(go.Shape, "RoundedRectangle",
+	              new go.Binding("fill", "color"),
+	              { stroke: "gray" }),
+	            $(go.TextBlock,
+	              { margin: 1 },
+	              new go.Binding("text", "key"))
+	          );
+
+        myFullDiagram.linkTemplate = $(go.Link,
+	            { routing: go.Link.Normal, selectable: false },
+	            $(go.Shape,
+	              { strokeWidth: 1 })
+	          );;
+	    
+	    myDiagram =
+	      $(go.Diagram, "myDiagram",
+	        {
+	          // have mouse wheel events zoom in and out instead of scroll up and down
+	          "toolManager.mouseWheelBehavior": go.ToolManager.WheelZoom,
+	          allowDrop: true,  // support drag-and-drop from the Palette
+//		          initialAutoScale: go.Diagram.Uniform,
+	          "linkingTool.direction": go.LinkingTool.ForwardsOnly,
+	          initialContentAlignment: go.Spot.Center,
+	          layout: $(go.LayeredDigraphLayout, { isInitial: false, isOngoing: false, layerSpacing: 20 }),
+	          "undoManager.isEnabled": true,
+	          "ChangedSelection": showLocalOnLocalClick
+	        });
+
+	    // when the document is modified, add a "*" to the title and enable the "Save" button
+	    myDiagram.addDiagramListener("Modified", function(e) {
+	      var button = document.getElementById("SaveButton");
+	      if (button) button.disabled = !myDiagram.isModified;
+	      var idx = document.title.indexOf("*");
+	      if (myDiagram.isModified) {
+	        if (idx < 0) document.title += "*";
+	      } else {
+	        if (idx >= 0) document.title = document.title.substr(0, idx);
+	      }
+	    });
+	
+	    // define the Node template
+	    myDiagram.nodeTemplate =
+	      $(go.Node, "Auto",
+	        new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+	        // define the node's outer shape, which will surround the TextBlock
+	        $(go.Shape, "Rectangle",
+	          { fill: whitegrad, stroke: "black",
+	            portId: "", fromLinkable: true, toLinkable: true, cursor: "pointer",
+	            toEndSegmentLength: 50, fromEndSegmentLength: 40 }),
+	        $(go.TextBlock, "주석",
+	          { margin: 6,
+	            font: bigfont,
+	            editable: true },
+	          new go.Binding("text", "text").makeTwoWay()),
+            {
+              contextMenu:
+                $(go.Adornment, "Spot",
+                  $(go.Placeholder, { padding: 5 }),
+                  $("ContextMenuButton", $(go.TextBlock, "속성"),
+                    { 
+                	  click: function(e, obj) {
+                		  openDataEdit(obj.part.key);
+		              }
+	                })
+              	)
+             }
+	       );
+
+	    myDiagram.nodeTemplateMap.add("Org",
+	    		$(go.Node, "Vertical",
+	    			{
+		              contextMenu:
+		                $(go.Adornment, "Spot",
+		                  $(go.Placeholder, { padding: 5 }),
+		                  $("ContextMenuButton", $(go.TextBlock, "  속 성   "),
+		                    { 
+		                	  click: function(e, obj) {
+		                		  showUsers(obj.part.data.key);
+				              }
+			                })
+		              	)
+		            },
+	    			new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+	    			$(go.Picture,
+	     			          { desiredSize: new go.Size(30, 30) },
+	     			          new go.Binding("source", "category", convertCategoryImage)),
+	    	        $(go.TextBlock, "조직", textStyle(),
+	    	          new go.Binding("text", "text"))
+	    	      )
+		    	);
+
+	    myDiagram.nodeTemplateMap.add("User",
+	    		$(go.Node, "Vertical",
+	    			new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+	    			$(go.Picture,
+    			        { desiredSize: new go.Size(30, 30),
+	    				portId: "", fromLinkable: true, toLinkable: true, cursor: "pointer"
+	    				},
+	     			    new go.Binding("source", "category", convertCategoryImage)),
+	    	        $(go.TextBlock, "사용자", textStyle(),
+	    	          new go.Binding("text", "text"))
+	    	      )
+		    	);
+	    
+	    // replace the default Link template in the linkTemplateMap
+	    myDiagram.linkTemplate =
+	      $(go.Link,  // the whole link panel
+	        new go.Binding("points").makeTwoWay(),
+	        { curve: go.Link.Bezier, toShortLength: 15 },
+	        new go.Binding("curviness", "curviness"),
+	        $(go.Shape,  // the link shape
+	          { stroke: "#2F4F4F", strokeWidth: 2.5 }),
+	        $(go.Shape,  // the arrowhead
+	          { toArrow: "kite", fill: "#2F4F4F", stroke: null, scale: 2 })
+	    );
+
+	    myDiagram.linkTemplateMap.add("Link",
+	      $(go.Link, { selectable: false },
+	        $(go.Shape, { strokeWidth: 2, stroke: "darkgreen" })));
+	    
+	    var palette =
+	      $(go.Palette, "palette",  // create a new Palette in the HTML DIV element "palette"
+	        {
+	          // share the template map with the Palette
+	          nodeTemplateMap: myDiagram.nodeTemplateMap,
+	          autoScale: go.Diagram.Uniform  // everything always fits in viewport
+	        });
+
+	    palette.model.nodeDataArray = [
+	      { category: "Org" },
+	      { category: "User" }
+	    ];
+	
+	    jQuery.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/getTableData.do",
+			dataType : "json",
+			success : function(msg) {
+				users = jQuery.parseJSON(msg);
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : {fileName:fileName, objectKey:objectKeyUser}
+		});
+	    
+		jQuery.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/getTableData.do",
+			dataType : "json",
+			success : function(msg) {
+				setupDiagram(msg);
+				
+				runFilter();
+		        
+			    var myOverview = $(go.Overview, "myOverview", {
+			        observed: myDiagram,
+			        maxScale: 0.5,
+			        contentAlignment: go.Spot.Center
+			    });
+			    // change color of viewport border in Overview
+			   myOverview.box.elt(0).stroke = "dodgerblue";	
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : {fileName : fileName, objectKey : objectKeyOrg}
+		});
+		
+	}//init end
+
+	
+    function showLocalOnLocalClick() {
+        var selected = myDiagram.selection.first();
+        if (selected !== null) {
+        	showUsers(selected.data.key);
+//           myFullDiagram.select(myFullDiagram.findPartForKey(selected.data.key));
+//           runFilter();
+        }
+      }
+	
+	
+	function layout() {
+		myDiagram.layoutDiagram(true);
+	}
+
+	//function saveMenu(fileName, objectKey, content) {
+	function saveOrg() {
+		var sendInfo = {
+			fileName : "system",
+			objectKey : "org",
+			content : myFullDiagram.model.toJson()
+		};
+
+		$.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/save.do",
+			dataType : "json",
+			success : function(msg) {
+				if (msg) {
+					
+					$.ajax({
+						type : "POST",
+						url : "/zPortal/modelManager/save.do",
+						dataType : "json",
+						success : function(msg) {
+							if (msg) {
+								alert("저장되었습니다.");
+							} else {
+								alert("저장할수 없습니다.");
+							}
+						},
+						error : function(request, status, error) {
+							alert("request:" + request.responseText + "\n error:" + error);
+						},
+						data : { fileName :'system', objectKey : 'users', content : JSON.stringify(users)}
+					});
+					
+				} else {
+					alert("저장할수 없습니다.");
+				}				
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : sendInfo
+		});
+	}
+	
+	function runFilter(){
+		var depth = 1;
+		jQuery("#depths").children().each(function (){
+			if(this.type == 'radio' && this.checked){
+				depth = parseInt(this.value) + 1; 
+			}
+		});
+		
+		var model = new go.TreeModel();		
+		var node = myFullDiagram.findPartForKey(rootId);
+        var nearby = node.findTreeParts(depth);  
+
+        nearby.each(function(n) {
+            if (n instanceof go.Node) model.addNodeData(n.data);
+          });
+        myDiagram.model = model;
+        
+        layout();
+	}
+	
+	function showUsers(key){
+		var node = myFullDiagram.findPartForKey(key);
+        var nearby = node.findTreeParts(10);  
+
+        var keys = [];
+        nearby.each(function(n) {
+            if (n instanceof go.Node) {
+            	keys.push(n.data.key);
+            }
+        });
+        
+		var header = {};
+		for (var i = 0 ; i < users[0].length; i++)
+		{
+			header[users[0][i]] = i;
+		}
+				
+		var userList = [];
+		
+		//결과값이 하나일때는 스트링이 되어버림.
+		if(typeof keys === 'string' ){
+			userList = jQuery.grep(users, function(entry) {
+				return (entry[header['소속조직코드']] == keys);
+			});
+		}
+		else{
+			for(var i = 0; i < keys.length; i++){
+				var list = jQuery.grep(users, function(entry) {
+							return (entry[header['소속조직코드']] == keys[i]);
+						});
+				jQuery.merge(userList,list);
+			};
+		}
+		
+		var html = '<ul>';
+		for(var i=0; i <userList.length;i++){
+			html += '<li>' + userList[i][header['사원명']] + '</li>';
+		}
+		html += '</ul>';
+		
+		jQuery('#Users').html(html);
+	}
+	
+
+	function setupDiagram(msg) {
+		var dataSet = JSON.parse(msg);
+		var row = dataSet[0];
+		var header = {};
+		for (var i=0 ; i < row.length; i++)
+		{
+			header[row[i]] = i;
+		}
+		//첫번째행을 지운다.
+		dataSet.splice(0,1);	
+		
+		var model = new go.TreeModel();
+		
+		for (var index in dataSet){
+			model.addNodeData({
+				key : dataSet[index][header['key']],
+				parent : dataSet[index][header['parent']],
+				text : dataSet[index][header['text']],
+				category : 'Org'
+			});
+		}
+		myFullDiagram.model =  model;
+		menuManager.fullDiagram = myFullDiagram;
+	}
+	
+	function convertCategoryImage(category) {
+	   return "/zPortal/zVM/images/menu/" + category.toLowerCase() + ".png";
+	}
+		</script>
+        </head>
+        <body onload="init()">
+            <div>
+                <div style="width: 100%; white-space: nowrap;">
+                    <span style="display: inline-block; vertical-align: top; padding: 5px; width: 10%">
+                        <div id="palette" style="background-color: Snow; border: solid 1px gray; height: 280px"></div>
+                        <div class="handle">전체화면</div>
+                        <div id="myOverview"></div>
+                    </span>
+                    <span style="display: inline-block; vertical-align: top; padding: 5px; width: 80%">
+                    	<span id="depths">depth
+	                    	<input type="radio" name="Depth" id="rd_Depth1" value="1" checked><label for="rd_Depth1">1</label>
+							<input type="radio" name="Depth" id="rd_Depth2" value="2" ><label for="rd_Depth2">2</label>
+							<input type="radio" name="Depth" id="rd_Depth3" value="3" ><label for="rd_Depth3">3</label>
+							<input type="radio" name="Depth" id="rd_Depth4" value="4" ><label for="rd_Depth4">4</label>
+						</span>
+						<button id="saveBtn4" type="button" >실행</button>
+                        <div id="myDiagram" style="background-color: Snow; border: solid 1px gray; height: 480px; width:100%"></div>
+                        <div id="myFullDiagram" style="height: 0px; width:0px; visibility: hidden"></div>
+                    </span>
+                    <span style="display: inline-block; vertical-align: top; padding: 5px; width: 10%;  height: 480px;">
+                     	<div class="handle">사용자</div>
+                    	<div id="Users" style="height:480px">
+						</div>
+                    </span>
+                </div>
+                <button id="saveBtn3" class="elementBtn" type="button" onclick="saveOrg()">저장</button>
+            </div>
+        </body>
+    </html>

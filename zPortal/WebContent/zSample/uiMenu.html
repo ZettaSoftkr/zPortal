@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8">
+<TITLE>menu</TITLE>
+<SCRIPT type="text/javascript" src="../assets/js/jquery-2.1.4.min.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="../assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
+<link rel="stylesheet" href="../assets/css/topMenu.css">
+<style>
+#toolbar {
+	padding: 4px;
+	display: inline-block;
+}
+/* support: IE7 */
+*+html #toolbar {
+	display: inline;
+}
+</style>
+</head>
+<body oncontextmenu="return false;">
+	<div id='cssTopMenu'>
+		<ul>
+			<li><a href="#">파일</a>
+				<ul>
+					<li><a href="#" onclick="newDocument()">New</a></li>
+					<li><a href="#" onclick="openDocument()">Open...</a></li>
+					<li><a href="#" onclick="saveDocument()">Save</a></li>
+					<li><a href="#" onclick="saveDocumentAs()">Save As...</a></li>
+					<li><a href="#" onclick="removeDocument()">Delete...</a></li>
+				</ul></li>
+			<li><a href="#">수정</a>
+				<ul>
+					<li><a href="#" onclick="myDiagram.commandHandler.undo()">Undo</a></li>
+					<li><a href="#" onclick="myDiagram.commandHandler.redo()">Redo</a></li>
+					<li><a href="#" onclick="myDiagram.commandHandler.cutSelection()">Cut</a></li>
+					<li><a href="#" onclick="myDiagram.commandHandler.copySelection()">Copy</a></li>
+					<li><a href="#" onclick="myDiagram.commandHandler.pasteSelection()">Paste</a></li>
+					<li><a href="#" onclick="myDiagram.commandHandler.deleteSelection()">Delete</a></li>
+					<li><a href="#" onclick="myDiagram.commandHandler.selectAll()">Select All</a></li>
+				</ul></li>
+			<li><a href="#">정렬</a>
+				<ul>
+					<li><a href="#" onclick="myDiagram.commandHandler.alignLeft()">Left Sides</a></li>
+					<li><a href="#" onclick="myDiagram.commandHandler.alignRight()">Right Sides</a></li>
+					<li><a href="#" onclick="myDiagram.commandHandler.alignTop()">Tops</a></li>
+					<li><a href="#" onclick="myDiagram.commandHandler.alignBottom()">Bottoms</a></li>
+					<li><a href="#" onclick="myDiagram.commandHandler.alignCenterX()">Center X</a></li>
+					<li><a href="#" onclick="myDiagram.commandHandler.alignCenterY()">Center Y</a></li>
+				</ul></li>
+			<li><a href="#">공간</a>
+				<ul>
+					<li><a href="#" onclick="myDiagram.commandHandler.alignRow(askSpace())">In Row...</a></li>
+					<li><a href="#" onclick="myDiagram.commandHandler.alignColumn(askSpace())">In Column...</a></li>
+				</ul></li>
+			<li><a href="#">보기</a>
+				<ul>
+					<li><a href="#"> <input id="grid" type="checkbox" name="options" value="grid" onclick="updateGridOption()">Grid
+					</a></li>
+					<li><a href="#"> <input id="snap" type="checkbox" name="options" value="0" onclick="updateSnapOption()">Snapping
+					</a></li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+</body>
+<script>
+(function($) {
+
+	  $.fn.menumaker = function(options) {
+	      
+	      var cssmenu = $(this), settings = $.extend({
+	        title: "Menu",
+	        format: "dropdown",
+	        sticky: false
+	      }, options);
+
+	      return this.each(function() {
+	        cssmenu.prepend('<div id="menu-button">' + settings.title + '</div>');
+	        $(this).find("#menu-button").on('click', function(){
+	          $(this).toggleClass('menu-opened');
+	          var mainmenu = $(this).next('ul');
+	          if (mainmenu.hasClass('open')) { 
+	            mainmenu.hide().removeClass('open');
+	          }
+	          else {
+	            mainmenu.show().addClass('open');
+	            if (settings.format === "dropdown") {
+	              mainmenu.find('ul').show();
+	            }
+	          }
+	        });
+
+	        cssmenu.find('li ul').parent().addClass('has-sub');
+
+	        multiTg = function() {
+	          cssmenu.find(".has-sub").prepend('<span class="submenu-button"></span>');
+	          cssmenu.find('.submenu-button').on('click', function() {
+	            $(this).toggleClass('submenu-opened');
+	            if ($(this).siblings('ul').hasClass('open')) {
+	              $(this).siblings('ul').removeClass('open').hide();
+	            }
+	            else {
+	              $(this).siblings('ul').addClass('open').show();
+	            }
+	          });
+	        };
+
+	        if (settings.format === 'multitoggle') multiTg();
+	        else cssmenu.addClass('dropdown');
+
+	        if (settings.sticky === true) cssmenu.css('position', 'fixed');
+
+	        resizeFix = function() {
+	          if ($( window ).width() > 768) {
+	            cssmenu.find('ul').show();
+	          }
+
+	          if ($(window).width() <= 768) {
+	            cssmenu.find('ul').hide().removeClass('open');
+	          }
+	        };
+	        resizeFix();
+	        return $(window).on('resize', resizeFix);
+
+	      });
+	  };
+	})(jQuery);
+
+	(function($){
+	$(document).ready(function(){
+
+	$("#cssTopMenu").menumaker({
+	   title: "Menu",
+	   format: "multitoggle"
+	});
+
+
+	});
+	})(jQuery);
+</script>
+</html>

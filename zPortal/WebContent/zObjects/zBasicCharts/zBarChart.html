@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body id="container">
+<label>제목 : <input type="text" id="chart_title"></label>
+<width>너비 : <input type="text" id="chart_width"></width>
+<height>높이 : <input type="text" id="chart_height"></height>
+<valueOnPoint><input type="checkbox" id="value_on_point">값 보이기</valueOnPoint>
+<multiColor><input type="checkbox" id="multi_color">다중색</multiColor>
+<colorPalette1>1번색 : <input type="text" id="color1"></colorPalette1>
+<showgrid><input type="checkbox" id="show_grid">그리드 표시</showgrid>
+</body>
+<script src="jquery-2.1.4.min.js" type="text/javascript"></script>
+<script src="d3.min.js" type="text/javascript"></script>
+<script src="d3.tip.v0.6.3.js"></script>
+<script src="barChartData.js" type="text/javascript"></script>
+<script src="barChartJS.js" type="text/javascript"></script>
+<link href="barChartStyle.css" rel="stylesheet" />
+<script>
+
+var disLst = new Array();
+var datalist = new Array();
+for (var i = 1; i < dataSet.length; i++) {
+
+		var tmpList = {};
+		
+		if(disLst.indexOf(dataSet[i][0]) == -1){
+			
+			for(var j=0; j<dataSet[0].length; j++)
+				{
+					tmpList[dataSet[0][j]] = dataSet[i][j];
+				}
+			
+			datalist.push(tmpList);
+		}
+}
+
+var width = 800;
+var height = 400;
+
+barChart.draw(datalist, width, height, 2);
+
+</script>

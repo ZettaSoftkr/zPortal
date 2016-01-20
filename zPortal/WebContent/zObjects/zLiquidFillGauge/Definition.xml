@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ExtensionObject Label="zLiquidFillGauge" Description="zLiquidFillGauge" PageHeight="700">
+  <Dimension Label="dim1" Initial="Tags" DropTarget="Tags"/>
+  <Measurement Label="measure1" Initial="Sum(Tags)" />
+  <Text Label="Guage1" Type="text"/>
+  <Text Label="Guage2" Type="text"/>
+  <Text Label="Guage3" Type="text"/>
+  <Text Label="Guage4" Type="text"/>
+  <Text Label="Guage5" Type="text"/>
+  <Initiate Name="Caption.Text" Value="zLiquidFillGauge" />
+  <Initiate Name="Chart.BgColor.ColorHex" value="#FFF" />
+  </ExtensionObject>
+
+
+
