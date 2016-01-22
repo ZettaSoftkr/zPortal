@@ -48,6 +48,7 @@
 
 		<property name="maxUploadSize" value="10240000" />
 	</bean>
-	<bean id="DownloadView" class="com.zetta.fileDownload.controller.DownloadView" />
+	
+<!-- 	<bean id="DownloadView" class="com.zetta.fileDownload.controller.DownloadView" /> -->
 
 </beans>

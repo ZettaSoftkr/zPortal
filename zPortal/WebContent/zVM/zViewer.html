@@ -1,34 +1,33 @@
-
 <!DOCTYPE html>
 <HTML>
 <HEAD>
 <META http-equiv="Content-Type" content="text/html; charset=utf-8">
 <TITLE>zViewer</TITLE>
-<LINK type="text/css" rel="stylesheet" href="../assets/css/layout-default-1.3.3.css" />
-<LINK type="text/css" rel="stylesheet" href="../assets/css/jquery-ui.css" />
-<link rel="stylesheet" href="../assets/css/font-awesome/css/font-awesome.min.css">
+<link rel="icon" href="/zPortal/assets/images/favicon.ico">
+<LINK type="text/css" rel="stylesheet" href="/zPortal/assets/css/layout-default-1.3.3.css" />
+<LINK type="text/css" rel="stylesheet" href="/zPortal/assets/css/jquery-ui.css" />
+<link rel="stylesheet" href="/zPortal/assets/css/font-awesome/css/font-awesome.min.css">
 
-<link href="../jspanel/jquery.jspanel.css" rel="stylesheet">
+<link href="/zPortal/jspanel/jquery.jspanel.css" rel="stylesheet">
 
-<link rel="stylesheet" href="../assets/css/menu.css">
-<link rel="stylesheet" href="../assets/css/topMenu.css">
+<link rel="stylesheet" href="/zPortal/assets/css/menu.css">
+<link rel="stylesheet" href="/zPortal/assets/css/topMenu.css">
 
-<SCRIPT type="text/javascript" src="../assets/js/jquery-2.1.4.min.js"></SCRIPT>
-<SCRIPT type="text/javascript" src="../assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
-<SCRIPT type="text/javascript" src="../assets/js/jquery.layout-1.4.4.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/jquery-2.1.4.min.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/jquery.layout-1.4.4.js"></SCRIPT>
 
-<script src="model/zMRootNode.js"></script>
-<script src="model/zMenuLink.js"></script>
-<script src="model/zMenuNode.js"></script>
-<script src="model/zMenu.js"></script>
-<script src="model/zTree.js"></script>
-<script src="model/zOrg.js"></script>
+<script src="/zPortal/zVM/model/zMRootNode.js"></script>
+<script src="/zPortal/zVM/model/zMenuLink.js"></script>
+<script src="/zPortal/zVM/model/zMenuNode.js"></script>
+<script src="/zPortal/zVM/model/zMenu.js"></script>
+<script src="/zPortal/zVM/model/zTree.js"></script>
+<script src="/zPortal/zVM/model/zOrg.js"></script>
 
-<SCRIPT type="text/javascript" src="../assets/js/mobile-detect.min.js"></SCRIPT>
-<script src="../assets/js/jquery.ui.touch-punch.min.js"></script>
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/mobile-detect.min.js"></SCRIPT>
+<script src="/zPortal/assets/js/jquery.ui.touch-punch.min.js"></script>
 
-<script src="../jspanel/jquery.jspanel.js"></script>
-
+<script src="/zPortal/jspanel/jquery.jspanel.js"></script>
 
 <style type="text/css">
 body {
@@ -107,6 +106,7 @@ iframe {
 	var menuKey = null;
 	var editReport = '';
 	
+	var userInfo = null;
 	var rootNode = new zMRootNode();
 	var programInfos = null;
 	var fullTree = null;
@@ -225,32 +225,15 @@ iframe {
 		
 		$.ajax({
 			type : "POST",
-			url : "/zPortal/modelManager/load.do",
+			url : "/zPortal/getUserInfo.do",
 			dataType : "json",
 			success : function(msg) {
-				rootNode = msg;
-				//top---------------------------------------------------------------------------
-				var html = '<ul>';
-//		 		html += '<li><a href="#"><img src="../../assets/images/top/logo.jpg"/></a></li>';
-				html += '<li><a href=\'javascript:goHome()\'><span>ZETTA Soft</span></a></li>';
-				html += makeTopHtml(rootNode, "#");
-				html += '</ul>';
-				document.getElementById("cssTopMenu").innerHTML = html;	
-				
-				var treeRoot = new zTree("#");
-				treeRoot.setDataRootNode(rootNode);
-				
-				var tree = treeRoot.initFromLinkModel(rootNode, treeRoot);
-				fullTree = tree;
-				
-				//left---------------------------------------------------------------------------
-				showLeft(menuKey);
-				//left---------------------------------------------------------------------------
+				userInfo = msg;
+				setMenu(userInfo.menu);
 			},
 			error : function(request, status, error) {
 				alert("menu error:" + error);
-			},
-			data : {fileName : 'system', objectKey : 'menu'}
+			}
 		});
 		
 		$.ajax({
@@ -266,6 +249,27 @@ iframe {
 			data : {fileName:'system',objectKey:'VProgramInfo'}
 		});
 	});
+	
+	function setMenu(menu){
+		rootNode = menu;
+		//top---------------------------------------------------------------------------
+		var html = '<ul>';
+// 		html += '<li><a href="#"><img src="../../assets/images/top/logo.jpg"/></a></li>';
+		html += '<li><a href=\'javascript:goHome()\'><span>ZETTA Soft</span></a></li>';
+		html += makeTopHtml(rootNode, "#");
+		html += '</ul>';
+		document.getElementById("cssTopMenu").innerHTML = html;	
+		
+		var treeRoot = new zTree("#");
+		treeRoot.setDataRootNode(rootNode);
+		
+		var tree = treeRoot.initFromLinkModel(rootNode, treeRoot);
+		fullTree = tree;
+		
+		//left---------------------------------------------------------------------------
+		showLeft(menuKey);
+		//left---------------------------------------------------------------------------
+	}
 	
 
 	function showPage(frameId, url){

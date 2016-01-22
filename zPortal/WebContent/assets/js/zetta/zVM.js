@@ -25,13 +25,6 @@ function init() {
 		}
 	});
 
-	// hides open HTML Element
-	var openDocument = document.getElementById("openDocument");
-	openDocument.style.visibility = "hidden";
-	// hides remove HTML Element
-	var removeDocument = document.getElementById("removeDocument");
-	removeDocument.style.visibility = "hidden";
-
 	var $ = go.GraphObject.make; // for more concise visual tree definitions
 
 	// constants for design choices
@@ -307,6 +300,7 @@ function init() {
 			margin : 3
 		}), {
 			click : function(e, obj) {
+				
 				console.info("dataStorageNodeMenu click");
 				console.info("zDataSource_init call", getCurrentFileName(),obj.part.data.key);
 				zDataSource_init(getCurrentFileName(), obj.part.data.key);
@@ -366,34 +360,6 @@ function init() {
 			openDataStorageNodeEdit(obj);
 		}
 	}));
-
-	// 김창영 2015.12.25
-	function openDataStorageNodeEdit(obj) {
-		myDiagram.startTransaction("openDataStorageNodeEdit");
-		
-		console.info("myDiagram.selection.each start");
-		
-		myDiagram.selection.each(function(node) {
-			if (!(node instanceof go.Node))
-				return;
-			
-			if (node.data && node.data.category === "datastore") {
-				var panel = document.getElementById("editDataSource");
-				panel.style.visibility = "visible";
-				document.getElementById("editDataSourceHandle").innerHTML = '데이터 소스 편집(ID:' + obj.part.data.key + ')';
-			}
-			
-			if (node.data && node.data.category === "dataobject") {
-				var panel = document.getElementById("editDataObject");
-				panel.style.visibility = "visible";
-				document.getElementById("editDataObjectHandle").innerHTML = 'DB데이터 가져오기  (ID:' + obj.part.data.key + ')';
-			}
-		});
-		
-		console.info("myDiagram.selection.each end");
-		
-		myDiagram.commitTransaction("openDataStorageNodeEdit");
-	}
 
 	var activityNodeMenu = $(go.Adornment, "Vertical", $("ContextMenuButton", $(go.TextBlock, "  실행화면 보기     ", {
 		margin : 3
@@ -588,7 +554,7 @@ function init() {
 		return "images/objects/" + chartType.toLowerCase().replace(/\s/g, "-") + ".png";
 	}
 
-	var palscale = 3;
+	var palscale = 1;
 	var activityNodeTemplateForPalette = $(go.Node, "Vertical", {
 		locationObjectName : "SHAPE",
 		locationSpot : go.Spot.Center,
@@ -636,7 +602,7 @@ function init() {
 	var visualizationNodeTemplateForPalette = $(go.Node, "Auto", {
 		toolTip : tooltiptemplateV
 	}, $(go.Picture, {
-		desiredSize : new go.Size(60, 60),
+		desiredSize : new go.Size(30, 30),
 		margin : 2
 	}, new go.Binding("source", "chartType", theChartConverter)));
 
@@ -1568,6 +1534,16 @@ function init() {
 		},
 		data : {fileName:'system', objectKey:'VObjectInfo'}
 	});
+	
+	
+	window.onresize = function() {
+		jQuery("#palette").height(window.innerHeight * 0.6);
+		jQuery("#myOverview").height(window.innerHeight * 0.3);
+		jQuery("#myDiagram").height(window.innerHeight * 0.90);
+		layout();
+	};
+	
+	window.onresize();
 
 } // end init
 
@@ -1589,7 +1565,7 @@ function loadFileinit(fileName) {
 				newDocument();
 			},
 			data : {
-				fileName : fileName,
+				fileName : "process//" + fileName,
 				objectKey : 'main'
 			}
 		});
@@ -1923,44 +1899,20 @@ function saveDocumentAs() {
 function openDocument() {
 	if (checkLocalStorage()) {
 		if (myDiagram.isModified) {
-			var save = confirm(getCurrentFileName() + " 파일로 변경하시겠습니까?");
+			var save = confirm(getCurrentFileName() + " 파일을 저장하시겠습니까?");
 			if (save) {
 				saveDocument();
 			}
 		}
-		openElement("openDocument", "mySavedFiles");
+		openElement("openDocument");
 	}
 }
 
 // shows the remove HTML element
 function removeDocument() {
 	if (checkLocalStorage()) {
-		openElement("removeDocument", "mySavedFiles2");
+		openElement("removeDocument");
 	}
-}
-
-// these functions are called when panel buttons are clicked
-function loadFile() {
-	var listbox = document.getElementById("mySavedFiles");
-	// get selected filename
-	var fileName = undefined;
-	for (var i = 0; i < listbox.options.length; i++) {
-		if (listbox.options[i].selected)
-			fileName = listbox.options[i].text;
-	}
-	if (fileName !== undefined) {
-		// changes the text of "currentFile" to be the same as the floor plan
-		// now loaded
-		setCurrentFileName(fileName);
-		// actually load the model from the JSON format string
-		var savedFile = window.localStorage.getItem(fileName);
-		myDiagram.model = go.Model.fromJson(savedFile);
-		myDiagram.model.undoManager.isEnabled = true;
-		myDiagram.isModified = false;
-		// eventually loadDiagramProperties will be called to finish
-		// restoring shared saved model/diagram properties
-	}
-	closeElement("openDocument");
 }
 
 function loadJSON(file) {
@@ -2025,14 +1977,6 @@ function updateFileList(id) {
 	}
 }
 
-function openElement(id, listid) {
-	var panel = document.getElementById(id);
-	if (panel.style.visibility === "hidden") {
-		updateFileList(listid);
-		panel.style.visibility = "visible";
-	}
-}
-
 // hides the open/remove elements when the "cancel" button is pressed
 function closeElement(id) {
 	var panel = document.getElementById(id);
@@ -2049,4 +1993,8 @@ function textStyle() {
 	return {
 		margin : 2
 	}
+}
+
+function layout() {
+	myDiagram.layoutDiagram(true);
 }

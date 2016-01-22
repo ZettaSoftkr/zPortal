@@ -3,20 +3,20 @@
 <head>
 <title>ZettaSoft-Menu Manager</title>
 <meta content="text/html; charset=UTF-8" http-equiv="content-type">
-<script src="../assets/js/go/go.js"></script>
+<script src="/zPortal/assets/js/go/go.js"></script>
 
-<script src="model/zMenuManager.js"></script>
-<script src="model/zMRootNode.js"></script>
-<script src="model/zMenuLink.js"></script>
-<script src="model/zMenuNode.js"></script>
-<script src="model/zMenu.js"></script>
-<script src="model/zOrg.js"></script>
+<script src="/zPortal/zVM/model/zMenuManager.js"></script>
+<script src="/zPortal/zVM/model/zMRootNode.js"></script>
+<script src="/zPortal/zVM/model/zMenuLink.js"></script>
+<script src="/zPortal/zVM/model/zMenuNode.js"></script>
+<script src="/zPortal/zVM/model/zMenu.js"></script>
+<script src="/zPortal/zVM/model/zOrg.js"></script>
 
-<link href="zVM.css" rel="stylesheet" type="text/css" />
-<LINK type="text/css" rel="stylesheet" href="../assets/css/jquery-ui.css" />
-<LINK type="text/css" rel="stylesheet" href="../assets/css/font-awesome/css/font-awesome.min.css" />
-<SCRIPT type="text/javascript" src="../assets/js/jquery-2.1.4.min.js"></SCRIPT>
-<SCRIPT type="text/javascript" src="../assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
+<link href="/zPortal/assets/css/zVM.css" rel="stylesheet" type="text/css" />
+<LINK type="text/css" rel="stylesheet" href="/zPortal/assets/css/jquery-ui.css" />
+<LINK type="text/css" rel="stylesheet" href="/zPortal/assets/css/font-awesome/css/font-awesome.min.css" />
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/jquery-2.1.4.min.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
 
 <style>
 #toolbar {
@@ -269,28 +269,78 @@
 
 		loadOrgs();
 		loadUsers();
+		
+		
+		window.onresize = function() {
+			jQuery("#palette").height(window.innerHeight * 0.6);
+			jQuery("#myOverview").height(window.innerHeight * 0.26);
+			jQuery("#myDiagram").height(window.innerHeight * 0.90);
+			jQuery("#myDiagram").width(window.innerWidth * 0.85);
+			layout();
+		};
+		
+		window.onresize();
 
 	}//init()마지막
 
 	function loadOrgs() {
+		//이미저장된 그룹이 있다면 그룹을 로드한다.
 		jQuery.ajax({
 			type : "POST",
 			url : "/zPortal/modelManager/load.do",
 			dataType : "json",
 			success : function(msg) {
+				alert("저장된 사용자 그룹을 로드했습니다.");
 				myFullDiagram.model = go.Model.fromJson(msg);
 				menuManager.fullDiagram = myFullDiagram;
 
 				runFilter();
 			},
 			error : function(request, status, error) {
-				alert("request:" + request.responseText + "\n error:" + error);
+				alert("저장된 그룹이 없으므로 초기화를 수행하게 됩니다.");
+
+				jQuery.ajax({
+					type : "POST",
+					url : "/zPortal/modelManager/load.do",
+					dataType : "json",
+					success : function(msg) {
+						var treeModl = msg;
+						var model = new go.GraphLinksModel();
+						
+						for (var index in treeModl.nodeDataArray){
+							model.addNodeData({
+								key : treeModl.nodeDataArray[index].key,
+								text : treeModl.nodeDataArray[index].text,
+								category : 'Org'
+							});
+							if(treeModl.nodeDataArray[index].parent!="null"){
+								model.linkDataArray.push({
+									from: treeModl.nodeDataArray[index].parent,
+									to: treeModl.nodeDataArray[index].key
+								});
+							}
+						}
+						
+						myFullDiagram.model = model;
+						menuManager.fullDiagram = myFullDiagram;
+
+						runFilter();
+					},
+					error : function(request, status, error) {
+						alert("request:" + request.responseText + "\n error:" + error);
+					},
+					data : {
+						fileName : 'system',
+						objectKey : 'org'
+					}
+				});
 			},
 			data : {
 				fileName : 'system',
-				objectKey : 'org'
+				objectKey : 'userGroup'
 			}
 		});
+
 	}
 
 	function loadUsers() {
@@ -442,16 +492,32 @@
 		//depth필터 해준다.
 		myFullDiagram.findPartForKey(rootId).isSelected = true;
 
+		var fullModel = myFullDiagram.model;
 		var node = myFullDiagram.selection.first();
 		if (node !== null) {
-			var model = new go.TreeModel();
-			var nearby = node.findTreeParts(depth + 1);
+// 			var model = new go.GraphLinksModel();
+// 			var nearby = node.findTreeParts(depth + 1);
 
-			nearby.each(function(n) {
-				if (n instanceof go.Node)
-					model.addNodeData(n.data);
-			});
-			myDiagram.model = model;
+// 			nearby.each(function(n) {
+// 				if (n instanceof go.Node){
+// 					model.addNodeData(n.data);
+// 				}
+// 			});
+			
+// 			//linkDataArra를 셋팅한다.
+// 			for(var index_d in model.nodeDataArray){
+// 				for(var index in fullModel.linkDataArray){
+// 					if(model.nodeDataArray[index_d].key == fullModel.linkDataArray[index].to){
+// 						model.linkDataArray.push({
+// 							from:fullModel.linkDataArray[index].from,
+// 							to:fullModel.linkDataArray[index].to
+// 						});
+// 					}
+// 				}
+// 			}
+			
+// 			myDiagram.model = model;
+ 			myDiagram.model = myFullDiagram.model;
 
 			layout();
 		} else {

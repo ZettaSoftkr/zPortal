@@ -1,18 +1,29 @@
 ﻿<!DOCTYPE html>
 <html>
-    <head>
-        <title>ZettaSoft-Menu Manager</title>
-        <meta content="text/html; charset=UTF-8" http-equiv="content-type">
-            <script src="../assets/js/go/go.js"></script>
-            
-            <script src="model/zMenuManager.js"></script>
-            <script src="model/zMRootNode.js"></script>
-            
-            <link href="zVM.css" rel="stylesheet" type="text/css" />
-            <LINK type="text/css" rel="stylesheet" href="../assets/css/jquery-ui.css" />
-			<SCRIPT type="text/javascript" src="../assets/js/jquery-2.1.4.min.js"></SCRIPT>
-			<SCRIPT type="text/javascript" src="../assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
-            <script id="code">
+<head>
+<title>ZettaSoft-Menu Manager</title>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type">
+<script src="/zPortal/assets/js/go/go.js"></script>
+
+<script src="/zPortal/zVM/model/zMenuManager.js"></script>
+<script src="/zPortal/zVM/model/zMRootNode.js"></script>
+
+<link href="/zPortal/assets/css/zVM.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="/zPortal/assets/css/site.css" />
+
+<link rel="stylesheet" href="/zPortal/assets/css/flick/jquery-ui.css" />
+<link rel="stylesheet" href="/zPortal/assets/css/bootstrap/bootstrap.min.css">
+<link rel="stylesheet" href="/zPortal/assets/css/font-awesome/css/font-awesome.css">
+<link rel="stylesheet" href="/zPortal/jspanel/jquery.jspanel.css">
+
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/jquery-2.1.4.min.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
+<!-- <script src="/zPortal/assets/js/bootstrap/bootstrap.min.js"></script> -->
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/mobile-detect.min.js"></SCRIPT>
+<script src="/zPortal/assets/js/jquery.ui.touch-punch.min.js"></script>
+
+<script src="/zPortal/jspanel/jquery.jspanel.js"></script>
+<script id="code">
     var fileName = 'system';
     var objectKeyUser = '3003';
     var objectKeyOrg = '3002';
@@ -26,6 +37,10 @@
 		jQuery("#depths").buttonset();		
 		jQuery("#saveBtn4").button().click(function() {
 			runFilter();
+		});
+		
+		jQuery("#saveBtn3").button().click(function() {
+			saveOrg();
 		});
 		
 		var $ = go.GraphObject.make;  // for conciseness in defining templates
@@ -230,6 +245,16 @@
 			data : {fileName : fileName, objectKey : objectKeyOrg}
 		});
 		
+		window.onresize = function() {
+			jQuery("#palette").height(window.innerHeight * 0.6);
+			jQuery("#myOverview").height(window.innerHeight * 0.26);
+			jQuery("#myDiagram").height(window.innerHeight * 0.90);
+			jQuery("#myDiagram").width(window.innerWidth * 0.85);
+			layout();
+		};
+		
+		window.onresize();
+		
 	}//init end
 
 	
@@ -350,7 +375,21 @@
 		}
 		html += '</ul>';
 		
-		jQuery('#Users').html(html);
+// 		jQuery('#Users').html(html);
+
+		$.jsPanel({
+			paneltype : {
+				type : 'modal',
+				mode : 'default'
+			},
+			size : {
+				width : window.innerWidth * 0.8,
+				height : window.innerHeight * 0.8
+			},
+			theme : 'medium',
+			title : "사용자리스트",
+			content: html
+		});
 	}
 	
 
@@ -383,33 +422,30 @@
 	   return "/zPortal/zVM/images/menu/" + category.toLowerCase() + ".png";
 	}
 		</script>
-        </head>
-        <body onload="init()">
-            <div>
-                <div style="width: 100%; white-space: nowrap;">
-                    <span style="display: inline-block; vertical-align: top; padding: 5px; width: 10%">
-                        <div id="palette" style="background-color: Snow; border: solid 1px gray; height: 280px"></div>
-                        <div class="handle">전체화면</div>
-                        <div id="myOverview"></div>
-                    </span>
-                    <span style="display: inline-block; vertical-align: top; padding: 5px; width: 80%">
-                    	<span id="depths">depth
-	                    	<input type="radio" name="Depth" id="rd_Depth1" value="1" checked><label for="rd_Depth1">1</label>
-							<input type="radio" name="Depth" id="rd_Depth2" value="2" ><label for="rd_Depth2">2</label>
-							<input type="radio" name="Depth" id="rd_Depth3" value="3" ><label for="rd_Depth3">3</label>
-							<input type="radio" name="Depth" id="rd_Depth4" value="4" ><label for="rd_Depth4">4</label>
-						</span>
-						<button id="saveBtn4" type="button" >실행</button>
-                        <div id="myDiagram" style="background-color: Snow; border: solid 1px gray; height: 480px; width:100%"></div>
-                        <div id="myFullDiagram" style="height: 0px; width:0px; visibility: hidden"></div>
-                    </span>
-                    <span style="display: inline-block; vertical-align: top; padding: 5px; width: 10%;  height: 480px;">
-                     	<div class="handle">사용자</div>
-                    	<div id="Users" style="height:480px">
-						</div>
-                    </span>
-                </div>
-                <button id="saveBtn3" class="elementBtn" type="button" onclick="saveOrg()">저장</button>
-            </div>
-        </body>
-    </html>
+</head>
+<body onload="init()">
+	<div style="width: 100%; white-space: nowrap;">
+		<div id="menuToolbar" class="ui-widget-header ui-corner-all">
+			<span id="depths">depth <input type="radio" name="Depth" id="rd_Depth1" value="1" checked><label
+					for="rd_Depth1">1</label> <input type="radio" name="Depth" id="rd_Depth2" value="2"><label for="rd_Depth2">2</label> <input type="radio" name="Depth" id="rd_Depth3" value="3"><label
+					for="rd_Depth3">3</label> <input type="radio" name="Depth" id="rd_Depth4" value="4"><label for="rd_Depth4">4</label>
+			</span>
+			<button id="saveBtn4" type="button">실행</button>
+			<span style="float: right">
+				<button id="saveBtn3" type="button">저장</button>
+			</span>
+
+		</div>
+		<div style="width: 100%; white-space: nowrap;">
+			<span style="display: inline-block; vertical-align: top; padding: 5px; width: 10%">
+				<div id="palette" style="background-color: Snow; border: solid 1px gray;"></div>
+				<div class="handle">전체화면</div>
+				<div id="myOverview"></div>
+			</span> <span style="display: inline-block; vertical-align: top; padding: 5px; width: 85%">
+				<div id="myDiagram" style="background-color: Snow; border: solid 1px gray; width: 95%"></div>
+				<div id="myFullDiagram" style="height: 0px; width: 0px; visibility: hidden"></div>
+			</span>
+		</div>
+	</div>
+</body>
+</html>

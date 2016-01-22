@@ -62,6 +62,7 @@
 <!-- 	<context:component-scan base-package="com.zetta.etlJob" /> -->
 <!-- 	<context:component-scan base-package="com.zetta.indexSearch" /> -->
 <!-- 	<context:component-scan base-package="com.zetta.publicLink" /> -->
+<!-- 	<context:component-scan base-package="com.zetta.portal" /> -->
 	<context:component-scan base-package="com.zetta.visualization" />
 	<context:component-scan base-package="com.zetta.dataSource" />
 	

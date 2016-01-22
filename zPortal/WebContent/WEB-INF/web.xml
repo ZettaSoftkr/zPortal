@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
 	<display-name>zPortal</display-name>
 	<welcome-file-list>
-		<welcome-file>/index.html</welcome-file>
+		<welcome-file>/zPortal/login.html</welcome-file>
 	</welcome-file-list>
 	<servlet>
 		<servlet-name>dispatcher</servlet-name>
@@ -71,4 +71,38 @@
 	<session-config>
 		<session-timeout>60</session-timeout>
 	</session-config>
+	
+	<mime-mapping>
+        <extension>html</extension>
+        <mime-type>text/html</mime-type>
+    </mime-mapping>
+
+    <mime-mapping>
+        <extension>txt</extension>
+        <mime-type>text/plain</mime-type>
+    </mime-mapping>
+
+    <mime-mapping>
+        <extension>pdf</extension>
+        <mime-type>application/pdf</mime-type>
+    </mime-mapping>
+    
+    <mime-mapping>
+        <extension>json</extension>
+        <mime-type>application/json</mime-type>
+    </mime-mapping>
+    
+        <mime-mapping>
+        <extension>xls</extension>
+        <mime-type>application/vnd.ms-excel</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>doc</extension>
+        <mime-type>application/vnd.ms-word</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>ppt</extension>
+        <mime-type>application/vnd.ms-powerpoint</mime-type>
+    </mime-mapping>
+    
 </web-app>

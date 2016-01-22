@@ -1,22 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>ZettaSoft-Visualization Manager</title>
+<title>ZettaSoft-Process Manager</title>
 <meta content="text/html; charset=UTF-8" http-equiv="content-type">
-<script src="../assets/js/go/go.js"></script>
-<link rel="stylesheet" href="../assets/css/jquery-ui.css" />
-<link rel="stylesheet" href="../assets/css/topMenu.css">
-<script src="../assets/js/jquery-2.1.4.min.js"></script>
-<script src="../assets/js/jquery-ui/jquery-ui.min.js"></script>
-<script src="../assets/js/go/DrawCommandHandler.js"></script>
-<link href="zVM.css" rel="stylesheet" type="text/css" />
-<script src="zVMClasses.js"></script>
-<script src="zVM.js"></script>
-<script src="zRecordMapper.js"></script>
+
+<script src="/zPortal/assets/js/go/go.js"></script>
+<link rel="stylesheet" href="/zPortal/assets/css/jquery-ui.css" />
+<link rel="stylesheet" href="/zPortal/assets/css/jquery-ui-smoothness.min.css" />	
+<link rel="stylesheet" href="/zPortal/assets/css/topMenu.css">
+
+<link rel="stylesheet" href="/zPortal/jspanel/jquery.jspanel.css">
+
+<link rel="stylesheet" href="/zPortal/assets/css/font-awesome/css/font-awesome.css">
+
+<script src="/zPortal/assets/js/jquery-2.1.4.min.js"></script>
+<script src="/zPortal/assets/js/jquery-ui/jquery-ui.min.js"></script>
+<script src="/zPortal/assets/js/jsTree/jstree.min.js"></script>
+
+<script src="/zPortal/assets/js/go/DrawCommandHandler.js"></script>
+<link href="/zPortal/assets/css/zVM.css" rel="stylesheet" type="text/css" />
+<script src="/zPortal/assets/js/zetta/zVMClasses.js"></script>
+<script src="/zPortal/assets/js/zetta/zVM.js"></script>
+<script src="/zPortal/assets/js/zetta/zRecordMapper.js"></script>
+
+<script src="/zPortal/zVM/model/zMRootNode.js"></script>
+<script src="/zPortal/zVM/model/zMenuLink.js"></script>
+<script src="/zPortal/zVM/model/zMenuNode.js"></script>
+<script src="/zPortal/zVM/model/zMenu.js"></script>
+<script src="/zPortal/zVM/model/zTree.js"></script>
+<script src="/zPortal/zVM/model/zOrg.js"></script>
+
+<script src="/zPortal/jspanel/jquery.jspanel.js"></script>
+<script src="/zPortal/assets/js/zetta/zSettings.js"></script>
+
 </head>
 <body onload="init()">
 	<div>
-		<div id='cssTopMenu' style="z-index: 1000; width:99%">
+		<div id='cssTopMenu' style="z-index: 1000; width: 99%">
 			<ul>
 				<li><a href="#">파일</a>
 					<ul>
@@ -56,8 +76,7 @@
 						</a></li>
 						<li><a href="#"> <input id="snap" type="checkbox" name="options" value="0" onclick="updateSnapOption()">Snapping
 						</a></li>
-					</ul>
-				</li>
+					</ul></li>
 			</ul>
 		</div>
 		<div id="PaletteAndDiagram">
@@ -86,25 +105,9 @@
 			<div id="myDiagram"></div>
 		</div>
 
-		<div id="openDocument" class="draggable">
-			<div id="openDraggableHandle" class="handle">파일 열기</div>
-			<div id="openText" class="elementText">파일을 선택하세요.</div>
-			<select id="mySavedFiles" class="mySavedFiles"></select> <br />
-			<button id="openBtn" class="elementBtn" type="button" onclick="loadFile()" style="margin-left: 70px">열기</button>
-			<button id="cancelBtn" class="elementBtn" type="button" onclick="closeElement('openDocument')">닫기</button>
-		</div>
-
-		<div id="removeDocument" class="draggable">
-			<div id="removeDraggableHandle" class="handle">파일 삭제</div>
-			<select id="mySavedFiles2" class="mySavedFiles"></select> <br />
-			<button id="removeBtn" class="elementBtn" type="button" onclick="removeFile()" style="margin-left: 70px">삭제</button>
-			<button id="cancelBtn2" class="elementBtn" type="button" onclick="closeElement('removeDocument')">닫기</button>
-		</div>
-		
 		<!-- 데이터 mapping -->
 		<div id="editDataObject" class="editable">
-			<div id="editDataObjectHandle" class="handle">DB데이터 가져오기</div>
-			<div id="dataPaletteAndDiagram">			
+			<div id="dataPaletteAndDiagram">
 				<div id="dataSideBar">
 					<span style="display: inline-block; vertical-align: top; padding: 5px; width: 100%">
 						<div id="dataAccordion">
@@ -124,51 +127,6 @@
 			<button id="saveBtn2" class="elementBtn" type="button" onclick="saveRecordMapper()">저장</button>
 			<button id="cancelBtn2" class="elementBtn" type="button" onclick="closeElement('editDataObject')">닫기</button>
 		</div>
-		
-		<!--  데이터 소스  -->
-		<div id="editDataSource" class="draggable">
-			<div id="editDataSourceHandle" class="handle">데이터 소스 편집</div>
-			<div>
-				<ul>
-					<li>
-						<div id="dataSourceRadio">
-							<input type="radio" id="FILE" name="sourceType" value='FILE' checked="checked" /> <label for="FILE">FILE</label>
-							<input id='ODBC' name='sourceType' type='radio' value='ODBC' /> <label for="ODBC">ODBC</label> 
-						</div>
-					</li>
-					<li>
-						<div class="my-fieldset">
-							<fieldset>
-								<legend>ODBC</legend>
-								<div>
-									<label for="zODBCChoice">ODBC선택</label> <select id='zODBCChoice'></select>
-								</div>
-								<div>
-									<label for="url">DB선택</label> <select id='zDbChoice'></select>
-								</div>
-							</fieldset>
-						</div>
-						<div class="my-fieldset1">
-							<fieldset>
-								<legend>FILE</legend>
-								<div>
-									<input type='file' id='datafile'>
-								</div>
-								<div>
-									<button id="uploadBtn" class="elementBtn" type="button" onclick="saveDataSource()">업로드</button>
-								</div>
-								<div style="width: 100%; float: left; margin-left: 5px;">
-									<label for="zFileChoice">서버파일선택</label> <select id='zFileChoice'></select>
-								</div>
-							</fieldset>
-						</div>
-					</li>
-					<li>
-						<button id="saveBtn3" class="elementBtn" type="button" onclick="saveDataSource()">저장</button><button id="cancelBtn2" class="elementBtn" type="button" onclick="closeElement('editDataSource')">닫기</button>
-					</li>
-				</ul>
-			</div>
-		</div>
 	</div>
 </body>
 <script>
@@ -180,35 +138,6 @@
 		fileName = unescape(temp[1]);
 	else
 		fileName = "_new";
-		
-	
-	$("#dataSourceRadio").click( function()
-	{
-		var radioObj = document.getElementsByName("sourceType");
-		 
-		var sourceType;
-		for (var i = 0; i < radioObj.length; i++) {
-			if(radioObj[i].checked){
-				sourceType = radioObj[i].value;
-				break;
-			}
-		}
-		if(sourceType == 'FILE'){
-			var myFieldset = $('.my-fieldset');
-			myFieldset.toggleClass('is-hidden');
-		}else{
-			var myFieldset = $('.my-fieldset1');
-			myFieldset.toggleClass('is-hidden');
-		}
-	});
-
-	$("#dataSourceRadio").buttonset({
-		  create: function( event, ui ) {
-			  var myFieldset = $('.my-fieldset');
-			  myFieldset.toggleClass('is-hidden');
-		  }
-	});
-	
 	
 	(function($) {
 
@@ -273,15 +202,15 @@
 		})(jQuery);
 
 		(function($){
-		$(document).ready(function(){
-
-		$("#cssTopMenu").menumaker({
-		   title: "Menu",
-		   format: "multitoggle"
-		});
-
-
-		});
+			$(document).ready(function(){
+	
+			$("#cssTopMenu").menumaker({
+			   title: "Menu",
+			   format: "multitoggle"
+			});
+	
+	
+			});
 		})(jQuery);
 </script>
 </html>

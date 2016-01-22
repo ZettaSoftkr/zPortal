@@ -1,23 +1,23 @@
 ﻿<!DOCTYPE html>
 <html>
-    <head>
-        <title>ZettaSoft-Menu Manager</title>
-        <meta content="text/html; charset=UTF-8" http-equiv="content-type">
-            <script src="../assets/js/go/go.js"></script>
-            
-            <script src="model/zMenuManager.js"></script>
-            <script src="model/zMRootNode.js"></script>
-            <script src="model/zMenuLink.js"></script>
-            <script src="model/zMenuNode.js"></script>
-            <script src="model/zMenu.js"></script>
-            
-            <link href="zVM.css" rel="stylesheet" type="text/css" />
-            <LINK type="text/css" rel="stylesheet" href="../assets/css/jquery-ui.css" />
-			<LINK type="text/css" rel="stylesheet" href="../assets/css/font-awesome/css/font-awesome.min.css" />
-			<SCRIPT type="text/javascript" src="../assets/js/jquery-2.1.4.min.js"></SCRIPT>
-			<SCRIPT type="text/javascript" src="../assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
+<head>
+<title>ZettaSoft-Menu Manager</title>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type">
+<script src="/zPortal/assets/js/go/go.js"></script>
 
-			<style>
+<script src="/zPortal/zVM/model/zMenuManager.js"></script>
+<script src="/zPortal/zVM/model/zMRootNode.js"></script>
+<script src="/zPortal/zVM/model/zMenuLink.js"></script>
+<script src="/zPortal/zVM/model/zMenuNode.js"></script>
+<script src="/zPortal/zVM/model/zMenu.js"></script>
+
+<link href="/zPortal/assets/css/zVM.css" rel="stylesheet" type="text/css" />
+<LINK type="text/css" rel="stylesheet" href="/zPortal/assets/css/jquery-ui.css" />
+<LINK type="text/css" rel="stylesheet" href="/zPortal/assets/css/font-awesome/css/font-awesome.min.css" />
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/jquery-2.1.4.min.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
+
+<style>
 #toolbar {
 	padding: 2px;
 	display: inline-block;
@@ -29,13 +29,12 @@
 
 /* Allow Font Awesome Icons in lieu of jQuery UI and only apply when using a FA icon */
 .ui-icon[class*=" fa-"] {
-    background: none repeat scroll 0 0 transparent;
-    text-indent: 0; 
-    margin-top: -0.5em;
+	background: none repeat scroll 0 0 transparent;
+	text-indent: 0;
+	margin-top: -0.5em;
 }
-		
-			</style>
-            <script>
+</style>
+<script>
     var $ = go.GraphObject.make;  
     var menuManager = new zMenuManager(null, null);
     
@@ -443,6 +442,16 @@
 	   myOverview.box.elt(0).stroke = "dodgerblue";		
 	   	   
 	   loadMenu();
+	   
+		window.onresize = function() {
+			jQuery("#palette").height(window.innerHeight * 0.6);
+			jQuery("#myOverview").height(window.innerHeight * 0.26);
+			jQuery("#myDiagram").height(window.innerHeight * 0.90);
+			jQuery("#myDiagram").width(window.innerWidth * 0.85);
+			layout();
+		};
+		
+		window.onresize();
 		
 	}//init()마지막
 	
@@ -702,62 +711,51 @@
 	}
 	
             </script>
-        </head>
-        <body onload="init();">
-        	<div style="width: 100%; white-space: nowrap;">
-				<div id="menuToolbar" class="ui-widget-header ui-corner-all">
-					<span id="filters">
-						<input type="checkbox" name="filter1" id="ck_Folder" ><label id="lb_Folder" class="ui-state-active" aria-pressed="true" for="ck_Folder">폴더</label></input>
-						<input type="checkbox" name="filter2" id="ck_Program" ><label id="lb_Program" class="ui-state-active" aria-pressed="true"  for="ck_Program">프로그램</label></input>
-						<input type="checkbox" name="filter3" id="ck_Report" ><label id="lb_Report" class="ui-state-active" aria-pressed="true"  for="ck_Report">보고서</label></input>
-						<input type="checkbox" name="filter4" id="ck_Link" ><label id="lb_Link" class="ui-state-active" aria-pressed="true"  for="ck_Link">링크</label></input>
-						<input type="checkbox" name="filter5" id="ck_UserGroup" ><label id="lb_UserGroup" aria-pressed="false"  for="ck_UserGroup">사용자그룹</label></input>
-						<input type="checkbox" name="filter6" id="ck_MenuGroup" ><label id="lb_MenuGroup" aria-pressed="false"  for="ck_MenuGroup">메뉴그룹</label></input>
-					</span>
-					<button id="saveBtn4" type="button" >실행</button>
-					<button id="saveBtn5" type="button" >추가된목록</button>
-					<span style="float:right">						
-						<button id="saveBtn3" type="button" >저장</button><button id="saveBtn6" type="button" >전체보기</button>
-					</span>
-					
-				</div>
-				<div style="width: 100%; white-space: nowrap;">
-                    <span style="display: inline-block; vertical-align: top; padding: 5px; width: 10%">
-                        <div id="palette" style="background-color: Snow; border: solid 1px gray; height: 330px"></div>
-                        <div class="handle">전체화면</div>
-                        <div id="myOverview"></div>
-                    </span>
-                    <span style="display: inline-block; vertical-align: top; padding: 5px; width: 89%">
-                        <div id="myDiagram" style="background-color: Snow; border: solid 1px gray; height: 500px; width: 100%"></div>
-                        <div id="myFullDiagram" style="height: 0px; width:0px; visibility: hidden"></div>
-                    </span>
-                </div>
-        	</div>
-            <!--  데이터 소스  -->
-			<div id="editDataSource" class="draggable">
-				<div id="editDataSourceHandle" class="handle">데이터 소스 편집</div>
-				<div>
-					<ul>
-						<li>
-							<span style="float:left">
-								<label for="data_menuId">ID</label><input type="text" id="data_menuId" >
-							</span>
-							<span style="float:left">
-								<label for="data_menuNm">이름</label><input type="text" id="data_menuNm" >
-							</span>
-							<br>
-							<span style="float:left">
-								<label for="data_sortSn">순서</label><input type="text" id="data_sortSn" >
-							</span>
-							<span style="float:left">
-								<label for="data_dc">설명</label><input type="text" id="data_dc" >
-							</span>
-						</li>
-						<li>
-							<button id="saveBtn3" class="elementBtn" type="button" onclick="saveDataSource()">저장</button><button id="cancelBtn2" class="elementBtn" type="button" onclick="closeElement('editDataSource')">닫기</button>
-						</li>
-					</ul>
-				</div>
-			</div>
-        </body>
-    </html>
+</head>
+<body onload="init();">
+	<div style="width: 100%; white-space: nowrap;">
+		<div id="menuToolbar" class="ui-widget-header ui-corner-all">
+			<span id="filters"> <input type="checkbox" name="filter1" id="ck_Folder"><label id="lb_Folder" class="ui-state-active" aria-pressed="true" for="ck_Folder">폴더</label></input> <input
+				type="checkbox" name="filter2" id="ck_Program"><label id="lb_Program" class="ui-state-active" aria-pressed="true" for="ck_Program">프로그램</label></input> <input type="checkbox" name="filter3"
+				id="ck_Report"><label id="lb_Report" class="ui-state-active" aria-pressed="true" for="ck_Report">보고서</label></input> <input type="checkbox" name="filter4" id="ck_Link"><label
+				id="lb_Link" class="ui-state-active" aria-pressed="true" for="ck_Link">링크</label></input> <input type="checkbox" name="filter5" id="ck_UserGroup"><label id="lb_UserGroup" aria-pressed="false"
+				for="ck_UserGroup">사용자그룹</label></input> <input type="checkbox" name="filter6" id="ck_MenuGroup"><label id="lb_MenuGroup" aria-pressed="false" for="ck_MenuGroup">메뉴그룹</label></input>
+			</span>
+			<button id="saveBtn4" type="button">실행</button>
+			<button id="saveBtn5" type="button">추가된목록</button>
+			<span style="float: right">
+				<button id="saveBtn3" type="button">저장</button>
+				<button id="saveBtn6" type="button">전체보기</button>
+			</span>
+
+		</div>
+		<div style="width: 100%; white-space: nowrap;">
+			<span style="display: inline-block; vertical-align: top; padding: 5px; width: 10%">
+				<div id="palette" style="background-color: Snow; border: solid 1px gray;"></div>
+				<div class="handle">전체화면</div>
+				<div id="myOverview"></div>
+			</span> <span style="display: inline-block; vertical-align: top; padding: 5px; width: 85%">
+				<div id="myDiagram" style="background-color: Snow; border: solid 1px gray; width: 95%"></div>
+				<div id="myFullDiagram" style="height: 0px; width: 0px; visibility: hidden"></div>
+			</span>
+		</div>
+	</div>
+	<!--  데이터 소스  -->
+	<div id="editDataSource" class="draggable">
+		<div id="editDataSourceHandle" class="handle">데이터 소스 편집</div>
+		<div>
+			<ul>
+				<li><span style="float: left"> <label for="data_menuId">ID</label><input type="text" id="data_menuId">
+				</span> <span style="float: left"> <label for="data_menuNm">이름</label><input type="text" id="data_menuNm">
+				</span> <br> <span style="float: left"> <label for="data_sortSn">순서</label><input type="text" id="data_sortSn">
+				</span> <span style="float: left"> <label for="data_dc">설명</label><input type="text" id="data_dc">
+				</span></li>
+				<li>
+					<button id="saveBtn3" class="elementBtn" type="button" onclick="saveDataSource()">저장</button>
+					<button id="cancelBtn2" class="elementBtn" type="button" onclick="closeElement('editDataSource')">닫기</button>
+				</li>
+			</ul>
+		</div>
+	</div>
+</body>
+</html>

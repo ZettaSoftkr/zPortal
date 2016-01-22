@@ -12,7 +12,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.zetta.common.DateTimeUtil;
-import com.zetta.userInfo.model.UserInfo;
 
 @Entity
 @Table(name = "PTL_TB_QLIKVIEW_LOGIN_M")
@@ -117,12 +116,4 @@ public class QlikViewLoginInfo {
 		return DateTimeUtil.getParseDateTimestemp(getBi_updt_dt(), "yyyy-MM-dd");
 	}
 
-	@ManyToOne
-	@JoinColumn(name = "bi_unity_cust_id", insertable = false, updatable = false, nullable=true)
-	private UserInfo userInfo;
-	public String getBi_user_nm() {
-
-		return userInfo.getBi_user_nm();
-
-	}
 }

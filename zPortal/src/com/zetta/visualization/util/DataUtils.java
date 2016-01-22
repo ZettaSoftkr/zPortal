@@ -415,7 +415,7 @@ public class DataUtils {
 
 			isr.close();
 		} else {
-			result = "선택한 모델이 없습니다.";
+			result = "[\"notFound\"]";
 			logger.info(result);
 		}
 		return result;

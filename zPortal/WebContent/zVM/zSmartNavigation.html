@@ -4,42 +4,42 @@
 <title>ZettaSoft</title>
 <meta content="text/html; charset=UTF-8" http-equiv="content-type">
 
-<script src="../assets/js/jquery-2.1.4.min.js"></script>
-<script src="../assets/js/cytoscape/cytoscape.min.js"></script>
-<script src="../assets/js/cytoscape/cytoscape-cxtmenu.js"></script>
-<script src="../assets/js/cytoscape/handlebars-v4.0.5.js"></script>
-<script src="../assets/js/cytoscape/typeahead.bundle.js"></script>
+<script src="/zPortal/assets/js/jquery-2.1.4.min.js"></script>
+<script src="/zPortal/assets/js/cytoscape/cytoscape.min.js"></script>
+<script src="/zPortal/assets/js/cytoscape/cytoscape-cxtmenu.js"></script>
+<script src="/zPortal/assets/js/cytoscape/handlebars-v4.0.5.js"></script>
+<script src="/zPortal/assets/js/cytoscape/typeahead.bundle.js"></script>
 
-<script src="model/zMRootNode.js"></script>
-<script src="model/zMenuLink.js"></script>
-<script src="model/zMenuNode.js"></script>
-<script src="model/zMenu.js"></script>
-<script src="model/zTree.js"></script>
-<script src="model/zOrg.js"></script>
+<script src="/zPortal/zVM/model/zMRootNode.js"></script>
+<script src="/zPortal/zVM/model/zMenuLink.js"></script>
+<script src="/zPortal/zVM/model/zMenuNode.js"></script>
+<script src="/zPortal/zVM/model/zMenu.js"></script>
+<script src="/zPortal/zVM/model/zTree.js"></script>
+<script src="/zPortal/zVM/model/zOrg.js"></script>
 
-<link href="../jspanel/jquery.jspanel.css" rel="stylesheet">
-<link href="../assets/css/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
-<link href="../assets/css/cytoscape.css" rel="stylesheet" />
+<link href="/zPortal/jspanel/jquery.jspanel.css" rel="stylesheet">
+<link href="/zPortal/assets/css/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+<link href="/zPortal/assets/css/cytoscape.css" rel="stylesheet" />
 
-<SCRIPT type="text/javascript" src="../assets/js/mobile-detect.min.js"></SCRIPT>
-<script src="../assets/js/jquery.ui.touch-punch.min.js"></script>
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/mobile-detect.min.js"></SCRIPT>
+<script src="/zPortal/assets/js/jquery.ui.touch-punch.min.js"></script>
 
-<script src="../jspanel/jquery.jspanel.js"></script>
+<script src="/zPortal/jspanel/jquery.jspanel.js"></script>
 
 <script>
 	var rootNode = null;
-	
+
 	$(function() {
-		
+
 		$.ajax({
 			type : "POST",
 			url : "/zPortal/modelManager/load.do",
 			dataType : "json",
 			success : function(msg) {
 				var rootNode = new zMRootNode();
-				rootNode.fromObject(msg);				
-				rootNode.setTypeFiltering(['F','D','R','V','L']);
-				
+				rootNode.fromObject(msg);
+				rootNode.setTypeFiltering([ 'F', 'D', 'R', 'V', 'L' ]);
+
 				var cyModel = rootNode.getCyModel();
 				initCy(cyModel);
 			},
@@ -52,16 +52,16 @@
 			}
 		});
 	});
-	
-	function initCy(cyModel){
+
+	function initCy(cyModel) {
 		var cy = window.cy = cytoscape({
 			container : document.getElementById('cy'),
 
 			layout : {
 				name : 'cose',
 				padding : 7,
-				idealEdgeLength: 7,
-	            nodeOverlap: 2
+				idealEdgeLength : 7,
+				nodeOverlap : 2
 			},
 
 			motionBlur : true,
@@ -69,34 +69,33 @@
 			boxSelectionEnabled : false,
 			autoungrabify : true,
 			style : cytoscape.stylesheet().selector('node').css({
-					'shape' : 'data(faveShape)',
-// 					'width' : 'data(weight)',
-					'content' : 'data(name)',
-					'text-valign' : 'center',
-					'text-outline-width' : 2,
-					'text-outline-color' : 'data(faveColor)',
-					'background-color' : 'data(faveColor)',
-					'color' : '#fff'
-				}).selector(':selected').css({
-					'border-width' : 3,
-					'border-color' : '#333'
-				}).selector('edge').css({
-					'opacity' : 0.666,
-// 					'width' : 'data(strength)',
-					'target-arrow-shape' : 'triangle',
-					'source-arrow-shape' : 'circle',
-// 					'line-color' : 'data(faveColor)',
-// 					'source-arrow-color' : 'data(faveColor)',
-// 					'target-arrow-color' : 'data(faveColor)'
-				}).selector('edge.questionable').css({
-					'line-style' : 'dotted',
-					'target-arrow-shape' : 'triangle'
-				}).selector('.faded').css({
-					'opacity' : 0.25,
-					'text-opacity' : 0
-				}
-			),
-			
+				'shape' : 'data(faveShape)',
+				// 					'width' : 'data(weight)',
+				'content' : 'data(name)',
+				'text-valign' : 'center',
+				'text-outline-width' : 2,
+				'text-outline-color' : 'data(faveColor)',
+				'background-color' : 'data(faveColor)',
+				'color' : '#fff'
+			}).selector(':selected').css({
+				'border-width' : 3,
+				'border-color' : '#333'
+			}).selector('edge').css({
+				'opacity' : 0.666,
+				// 					'width' : 'data(strength)',
+				'target-arrow-shape' : 'triangle',
+				'source-arrow-shape' : 'circle',
+			// 					'line-color' : 'data(faveColor)',
+			// 					'source-arrow-color' : 'data(faveColor)',
+			// 					'target-arrow-color' : 'data(faveColor)'
+			}).selector('edge.questionable').css({
+				'line-style' : 'dotted',
+				'target-arrow-shape' : 'triangle'
+			}).selector('.faded').css({
+				'opacity' : 0.25,
+				'text-opacity' : 0
+			}),
+
 			elements : cyModel
 		});
 
@@ -120,193 +119,190 @@
 			hideNodeInfo();
 			rSystemName = node.data('name');
 		});
-		
+
 		cy.on('select', 'edge', function(e) {
 			var edge = this;
 			showNodeInfo(edge);
 		});
-		
+
 		cy.cxtmenu({
 			selector : 'node',
 			commands : [ {
 				content : '<span class="fa fa-info fa-2x"></span>',
 				select : function() {
-					processShow("이동중입니다.", 2);
+					processShow("이동중입니다.", 2000);
 					console.log("정보보기");
 				}
-			},
-			{
+			}, {
 				content : '<span class="fa fa-star-o fa-2x"></span>',
 				select : function() {
 					console.log("즐겨찾기저장");
 				}
-			},
-			{
+			}, {
 				content : '<span class="fa fa-play-circle fa-2x"></span>',
 				select : function() {
-					processShow("이동중입니다.", 2);
-					
+					processShow("이동중입니다.", 2000);
+
 					console.log("보기", JSON.stringify(this.data('id')));
 					var result = parent.runMenu(this.data('id'));
-					if(result){				        
-				        window.setTimeout( function(){
-				           parent.smartNaviPanel.close();
-				        }, 1500 );
+					if (result) {
+						window.setTimeout(function() {
+							parent.smartNaviPanel.close();
+						}, 1500);
 					}
 				}
 			} ]
 		});
-		
+
 		var layoutPadding = 10;
-    	var layoutDuration = 200;
+		var layoutDuration = 200;
 
-    	var infoTemplate = Handlebars.compile([ '<p class="ac-name">{{desc}}</p>' ].join(''));
-    	
-    	function highlight(node) {
-    		var nhood = node.closedNeighborhood();
+		var infoTemplate = Handlebars.compile([ '<p class="ac-name">{{desc}}</p>' ].join(''));
 
-    		cy.batch(function() {
-    			cy.elements().not(nhood).removeClass('highlighted').addClass('faded');
-    			nhood.removeClass('faded').addClass('highlighted');
-    			
-    			var npos = node.position();
-    			var w = window.innerWidth * 0.6;
-    			var h = window.innerHeight * 0.6;
+		function highlight(node) {
+			var nhood = node.closedNeighborhood();
 
-    			cy.stop().animate({
-    				fit : {
-    					eles : cy.elements(),
-    					padding : layoutPadding
-    				}
-    			}, {
-    				duration : layoutDuration
-    			}).delay(layoutDuration, function() {
-//	    				cy.zoom(1.2);
-//	    				cy.center(node);
-    				nhood.layout({
-    					name : 'concentric',
-    					padding : layoutPadding,
-    					animate : true,
-    					animationDuration : layoutDuration,
-    					boundingBox : {
-    						x1 : npos.x - w / 2,
-    						x2 : npos.x + w / 2,
-    						y1 : npos.y - w / 2,
-    						y2 : npos.y + w / 2
-    					},
-    					fit : true,
-    					concentric : function(n) {
-    						if (node.id() === n.id()) {
-    							return 2;
-    						} else {
-    							return 1;
-    						}
-    					},
-    					levelWidth : function() {
-    						return 1;
-    					}
-    				});
-    			});  			
-      		});
-    	}
+			cy.batch(function() {
+				cy.elements().not(nhood).removeClass('highlighted').addClass('faded');
+				nhood.removeClass('faded').addClass('highlighted');
 
-    	function clear() {
-    		cy.batch(function() {
-    			cy.$('.highlighted').forEach(function(n) {
-    				n.animate({
-    					position : n.data('orgPos')
-    				});
-    			});
+				var npos = node.position();
+				var w = window.innerWidth * 0.6;
+				var h = window.innerHeight * 0.6;
 
-    			cy.elements().removeClass('highlighted').removeClass('faded');
-    		});
-    	}
+				cy.stop().animate({
+					fit : {
+						eles : cy.elements(),
+						padding : layoutPadding
+					}
+				}, {
+					duration : layoutDuration
+				}).delay(layoutDuration, function() {
+					//	    				cy.zoom(1.2);
+					//	    				cy.center(node);
+					nhood.layout({
+						name : 'concentric',
+						padding : layoutPadding,
+						animate : true,
+						animationDuration : layoutDuration,
+						boundingBox : {
+							x1 : npos.x - w / 2,
+							x2 : npos.x + w / 2,
+							y1 : npos.y - w / 2,
+							y2 : npos.y + w / 2
+						},
+						fit : true,
+						concentric : function(n) {
+							if (node.id() === n.id()) {
+								return 2;
+							} else {
+								return 1;
+							}
+						},
+						levelWidth : function() {
+							return 1;
+						}
+					});
+				});
+			});
+		}
 
-    	$('#reset').on('click', function() {
-    		clear();
-    		cy.animate({
-    			fit : {
-    				eles : cy.elements(),
-    				padding : layoutPadding
-    			},
-    			duration : layoutDuration
-    		});
-    	});
+		function clear() {
+			cy.batch(function() {
+				cy.$('.highlighted').forEach(function(n) {
+					n.animate({
+						position : n.data('orgPos')
+					});
+				});
 
+				cy.elements().removeClass('highlighted').removeClass('faded');
+			});
+		}
 
-    	$('#search').typeahead({
-     		minLength : 2,
-     		highlight : true,
-     	}, {
-     		name : 'search-dataset',
-     	    display: 'name',
-     		source : function(query, cb) {
-     			function matches(str, q) {
-     				str = (str || '').toLowerCase();
-     				q = (q || '').toLowerCase();
+		$('#reset').on('click', function() {
+			clear();
+			cy.animate({
+				fit : {
+					eles : cy.elements(),
+					padding : layoutPadding
+				},
+				duration : layoutDuration
+			});
+		});
 
-     				return str.match(q);
-     			}
+		$('#search').typeahead({
+			minLength : 2,
+			highlight : true,
+		}, {
+			name : 'search-dataset',
+			display : 'name',
+			source : function(query, cb) {
+				function matches(str, q) {
+					str = (str || '').toLowerCase();
+					q = (q || '').toLowerCase();
 
-     			var fields = ['name'];
+					return str.match(q);
+				}
 
-     			function anyFieldMatches(n) {
-     				for (var i = 0; i < fields.length; i++) {
-     					var f = fields[i];
+				var fields = [ 'name' ];
 
-     					if (matches(n.data(f), query)) {
-     						return true;
-     					}
-     				}
+				function anyFieldMatches(n) {
+					for (var i = 0; i < fields.length; i++) {
+						var f = fields[i];
 
-     				return false;
-     			}
+						if (matches(n.data(f), query)) {
+							return true;
+						}
+					}
 
-     			function getData(n) {
-     				var data = n.data();
+					return false;
+				}
 
-     				return data;
-     			}
+				function getData(n) {
+					var data = n.data();
 
-     			function sortByName(n1, n2) {
-     				if (n1.data('name') < n2.data('name')) {
-     					return -1;
-     				} else if (n1.data('name') > n2.data('name')) {
-     					return 1;
-     				}
+					return data;
+				}
 
-     				return 0;
-     			}
+				function sortByName(n1, n2) {
+					if (n1.data('name') < n2.data('name')) {
+						return -1;
+					} else if (n1.data('name') > n2.data('name')) {
+						return 1;
+					}
 
-     			var res = cy.nodes().stdFilter(anyFieldMatches).sort(sortByName).map(getData);
+					return 0;
+				}
 
-     			cb(res);
-     		},
-     		templates : {
-     			suggestion : Handlebars.compile([ '<p class="ac-name">{{name}}</p>' ].join(''))
-     		}
-     	}).on('typeahead:selected', function(e, entry, dataset) {
-     		var n = cy.getElementById(entry.id);
-     		n.select();
-     	});
+				var res = cy.nodes().stdFilter(anyFieldMatches).sort(sortByName).map(getData);
+
+				cb(res);
+			},
+			templates : {
+				suggestion : Handlebars.compile([ '<p class="ac-name">{{name}}</p>' ].join(''))
+			}
+		}).on('typeahead:selected', function(e, entry, dataset) {
+			var n = cy.getElementById(entry.id);
+			n.select();
+		});
 	}
-	
-	function processShow(text, close){
-		var cont = "<div style='font-size:14px;'>" +
-		"<div style='float:left;width:auto;height:100%'>" +
-            "<i class='fa fa-spinner fa-pulse' style='font-size:18px;padding:18px;'></i>" +
-        "</div>" +
-        "<p style='padding:14px 0;'>" + text + "</p>" +
-        "</div>";
-        
-    	$.jsPanel({
-	        paneltype: 'hint',
-	        theme:     'info',
-	        position:  'center',
-	        autoclose: close, 
-	        size:      { width: 360, height: 'auto' },
-	        content:   cont
-	    });
+
+	function processShow(text, close) {
+		var cont = "<div style='font-size:14px;'>" + "<div style='float:left;width:auto;height:100%'>"
+				+ "<i class='fa fa-spinner fa-pulse' style='font-size:18px;padding:18px;'></i>" + "</div>"
+				+ "<p style='padding:14px 0;'>" + text + "</p>" + "</div>";
+
+		$.jsPanel({
+			paneltype : 'hint',
+			theme : 'info',
+			position : 'center',
+			autoclose : close,
+			size : {
+				width : 360,
+				height : 'auto'
+			},
+			content : cont
+		});
 	}
 </script>
 </head>
