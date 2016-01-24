@@ -3,14 +3,13 @@
 <head>
 <title>ZettaSoft-Process Manager</title>
 <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+<!-- <link rel="stylesheet" href="/zPortal/assets/css/zetta.css" /> -->
 
 <script src="/zPortal/assets/js/go/go.js"></script>
 <link rel="stylesheet" href="/zPortal/assets/css/jquery-ui.css" />
 <link rel="stylesheet" href="/zPortal/assets/css/jquery-ui-smoothness.min.css" />	
 <link rel="stylesheet" href="/zPortal/assets/css/topMenu.css">
-
 <link rel="stylesheet" href="/zPortal/jspanel/jquery.jspanel.css">
-
 <link rel="stylesheet" href="/zPortal/assets/css/font-awesome/css/font-awesome.css">
 
 <script src="/zPortal/assets/js/jquery-2.1.4.min.js"></script>
@@ -21,7 +20,6 @@
 <link href="/zPortal/assets/css/zVM.css" rel="stylesheet" type="text/css" />
 <script src="/zPortal/assets/js/zetta/zVMClasses.js"></script>
 <script src="/zPortal/assets/js/zetta/zVM.js"></script>
-<script src="/zPortal/assets/js/zetta/zRecordMapper.js"></script>
 
 <script src="/zPortal/zVM/model/zMRootNode.js"></script>
 <script src="/zPortal/zVM/model/zMenuLink.js"></script>
@@ -40,7 +38,6 @@
 			<ul>
 				<li><a href="#">파일</a>
 					<ul>
-						<li><a href="#" onclick="newDocument()">New</a></li>
 						<li><a href="#" onclick="openDocument()">Open...</a></li>
 						<li><a href="#" onclick="saveDocument()">Save</a></li>
 						<li><a href="#" onclick="saveDocumentAs()">Save As...</a></li>
@@ -103,29 +100,6 @@
 				<div id="myOverview"></div>
 			</div>
 			<div id="myDiagram"></div>
-		</div>
-
-		<!-- 데이터 mapping -->
-		<div id="editDataObject" class="editable">
-			<div id="dataPaletteAndDiagram">
-				<div id="dataSideBar">
-					<span style="display: inline-block; vertical-align: top; padding: 5px; width: 100%">
-						<div id="dataAccordion">
-							<h4>데이터개체</h4>
-							<div style="display: inline-block; vertical-align: top; padding: 5px; width: 100%; font-size: 10px">
-								<div id="dataPaletteLevel1" class="dataPalette"></div>
-							</div>
-							<h4>모델개체</h4>
-							<div style="display: inline-block; vertical-align: top; padding: 5px; width: 100%; font-size: 10px">
-								<div id="dataPaletteLevel2" class="dataPalette"></div>
-							</div>
-						</div>
-					</span>
-				</div>
-				<div id="dataDiagram"></div>
-			</div>
-			<button id="saveBtn2" class="elementBtn" type="button" onclick="saveRecordMapper()">저장</button>
-			<button id="cancelBtn2" class="elementBtn" type="button" onclick="closeElement('editDataObject')">닫기</button>
 		</div>
 	</div>
 </body>

@@ -300,37 +300,16 @@ function init() {
 			margin : 3
 		}), {
 			click : function(e, obj) {
-				
-				console.info("dataStorageNodeMenu click");
-				console.info("zDataSource_init call", getCurrentFileName(),obj.part.data.key);
-				zDataSource_init(getCurrentFileName(), obj.part.data.key);
-				console.info("openDataStorageNodeEdit call");
-				openDataStorageNodeEdit(obj);
+				openDataSourceEdit(obj);
 			}
 		}),$("ContextMenuButton", $(go.TextBlock, "  확  인     ", {
 			margin : 3
 		}), {
 			click : function(e, obj) {
-				console.info("dataStorageNodeMenu 확인");
 				dataStorageNodeShow(getCurrentFileName(), obj.part.data.key);
 			}
 		})
 	);
-	
-	function dataStorageNodeShow(fileName, objectKey){
-		jQuery.ajax({
-			type : "POST",
-			url : "/zPortal/modelManager/load.do",
-			dataType : "json",
-			success : function(msg) {
-				alert(JSON.stringify(msg));
-			},
-			error : function(request, status, error) {
-				alert("error:" + error);
-			},
-			data : {fileName:fileName, objectKey:objectKey}
-		});
-	}
 	
 	$(go.Adornment, "Vertical", $("ContextMenuButton", $(go.TextBlock, "Default Flow"),
 			// in the click event handler, the obj.part is the Adornment; its
@@ -353,30 +332,16 @@ function init() {
 		margin : 3
 	}), {
 		click : function(e, obj) {
-			console.info("dataObjectNodeMenu click");
-			console.info("zRecordMapper_init call", getCurrentFileName(),obj.part.data.key);
-			zRecordMapper_init(getCurrentFileName(), obj.part.data.key);
-			console.info("openDataStorageNodeEdit call");
-			openDataStorageNodeEdit(obj);
+			openDataObjectEdit(obj);
 		}
 	}));
 
-	var activityNodeMenu = $(go.Adornment, "Vertical", $("ContextMenuButton", $(go.TextBlock, "  실행화면 보기     ", {
+	var activityNodeMenu = $(go.Adornment, "Vertical", $("ContextMenuButton", $(go.TextBlock, "  편   집     ", {
 		margin : 3
 	}), {
 
 		click : function(e, obj) {
-
-			var founed = false;
-			founded = objectTypes.forEach(function(entry) {
-				if (entry.chartType.toLowerCase() == obj.part.data.chartType.toLowerCase()) {
-					window.open(entry.url + "?fileName=" + getCurrentFileName() + "&objectKey=" + obj.part.data.key);
-					return true;
-				}
-			});
-
-			if (!founed)
-				alert("정의되지 없는 형식입니다.");
+			openVisualiztionEdit(obj);
 		}
 
 	}));
@@ -1544,6 +1509,9 @@ function init() {
 	};
 	
 	window.onresize();
+	
+	
+	openElement("openDocument");
 
 } // end init
 
@@ -1852,12 +1820,24 @@ function saveDocument() {
 			saveDiagramProperties()
 			window.localStorage.setItem(saveName, myDiagram.model.toJson());
 			myDiagram.isModified = false;
-			saveServerDocument(saveName, "main", myDiagram.model.toJson());
+			saveServerDocument(saveName, "main", myDiagram.model.toJson(), "");
 		}
 	}
 }
 
-function saveServerDocument(fileName, objectKey, content) {
+function saveServerDocument(fileName, objectKey, content, type) {
+	if(fileName=='_New') {
+		fileName = prompt("저장할 이름을 선택하세요.");
+		if(fileName==null) return;
+		type="new";
+	}
+	
+	if(type=="new"){
+		content = myDiagram.model.toJson();
+	}
+	
+	setCurrentFileName(fileName);
+	
 	var sendInfo = {
 		fileName : "process\\" + fileName,
 		objectKey : objectKey,
@@ -1870,7 +1850,13 @@ function saveServerDocument(fileName, objectKey, content) {
 		dataType : "json",
 		success : function(msg) {
 			if (msg) {
-				alert("저장되었습니다.");
+				if(type=="new"){
+					alert("생성되었습니다.");
+				}
+				else
+				{
+					alert("저장되었습니다.");
+				}
 			} else {
 				alert("저장할수 없습니다.");
 			}
@@ -1996,5 +1982,6 @@ function textStyle() {
 }
 
 function layout() {
-	myDiagram.layoutDiagram(true);
+	myDiagram.layout.invalidateLayout();
+	myDiagram.layoutDiagram();
 }

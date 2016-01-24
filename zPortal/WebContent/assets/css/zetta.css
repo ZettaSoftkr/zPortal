@@ -1,5 +1,5 @@
 /* default */
- @font-face { font-family:"fontawesome"; src: url("fontawesome-webfont.eot"); }
+@font-face { font-family:"fontawesome"; src: url("fontawesome-webfont.eot"); }
 @font-face {
   font-family: 'fontawesome';
   src: url('fontawesome-webfont.eot?#iefix') format('embedded-opentype'),
@@ -11,9 +11,34 @@
 }
 
 *{margin:0; padding:0; font-family:"Malgun Gothic", '맑은고딕', Tahoma, Gulim, AppleGothic, sans-serif;}
-dl,ul,ol,li {list-style: none;}
+dl,ul,ol,li {list-style: none; list-style-type:none; padding-left: 2px; }
+ul {
+    list-style: none; /* Remove list bullets */
+    padding: 0;
+    margin: 0;
+}
 a {text-decoration:none !important;}
-body {_text-align:center; }
+body {
+	_text-align:center; 
+	background-color: #F8F8F8;
+	font-family: 'Open Sans', sans-serif;
+	font-size: 14px;
+	font-weight: normal;
+	line-height: 1.2em;
+	margin: 0px;
+	overflow: hidden;
+	position: fixed;
+}
+
+h1,h2,h3,h4,h5,ul,li,div{
+	-webkit-user-select: none; /* Chrome/Safari */
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE10+ */
+	/* Rules below not implemented in browsers yet */
+	-o-user-select: none;
+	user-select: none;
+}
+
 hr {display:none;}
 img,fieldset {border:0 none;}
 h1,h2,h3,h4,h5,dl,dt,dd,ul,li,ol,th,td,p,blockquote,form,fieldset,legend {margin:0; padding:0;}

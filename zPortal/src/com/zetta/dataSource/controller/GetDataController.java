@@ -53,6 +53,29 @@ public class GetDataController {
 		mav.addObject("userId", userId);
 		return mav;
 	}
+	
+
+	@RequestMapping(value = "/redirect.do")
+	@ResponseBody
+	public ModelAndView load(
+			@RequestParam(value = "href", required = true) String href, 
+			HttpServletRequest request, 
+			HttpServletResponse response) throws Exception {
+
+		logger.info("/modelManager/load.do start");
+		
+		HttpSession session = request.getSession(true);
+		String userId = (String)session.getAttribute("userId");
+
+		logger.info("userId::" + userId);
+		
+		ModelAndView mav = new ModelAndView();
+		mav.setViewName("zPortal/redirect");
+		mav.addObject("userId", userId);
+		mav.addObject("href", href);
+		return mav;
+	}
+		
 
 	@RequestMapping(value = "/getUserInfo.do")
 	@ResponseBody

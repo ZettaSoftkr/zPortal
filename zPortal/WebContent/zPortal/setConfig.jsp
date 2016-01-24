@@ -17,6 +17,8 @@
 <script src="/zPortal/assets/js/jquery.ui.touch-punch.min.js"></script>
 
 <script src="/zPortal/jspanel/jquery.jspanel.js"></script>
+<script src="/zPortal/assets/js/zetta/zSettings.js"></script>
+
 
 <script type="text/javascript">
 	window.onload = function() {		
@@ -302,25 +304,6 @@
 			},
 			data : sendInfo
 		});		
-	}
-
-	function processShow(text, close){
-		var cont = "<div style='font-size:14px;'>" +
-		"<div style='float:left;width:auto;height:100%'>" +
-            "<i class='fa fa-spinner fa-pulse' style='font-size:18px;padding:18px;'></i>" +
-        "</div>" +
-        "<p style='padding:14px 0;'>" + text + "</p>" +
-        "</div>";
-        
-    	$.jsPanel({
-    		id: 'processShow',
-	        paneltype: 'hint',
-	        theme:     'info',
-	        position:  'center',
-	        autoclose: close, 
-	        size:      { width: 360, height: 'auto' },
-	        content:   cont
-	    });
 	}
 	
 </script>

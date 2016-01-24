@@ -3,10 +3,9 @@
 <head>
 <title></title>
 <script src="/zPortal/assets/js/jquery-2.1.4.min.js"></script>
+<link rel="stylesheet" href="/zPortal/assets/css/zetta.css" />
 
-<link rel="stylesheet" href="/zPortal/assets/css/site.css" />
 <link rel="stylesheet" href="/zPortal/assets/css/jsTree/jsTree.min.css" />
-
 <link rel="stylesheet" href="/zPortal/assets/css/flick/jquery-ui.css" />
 <link rel="stylesheet" href="/zPortal/assets/css/bootstrap/bootstrap.min.css">
 <link rel="stylesheet" href="/zPortal/jspanel/jquery.jspanel.css">
@@ -16,6 +15,7 @@
 <link rel="stylesheet" href="/zPortal/assets/css/dockspwan/dock-wheel.css">
 <link rel="stylesheet" href="/zPortal/assets/css/dockspwan/dock-manager-style.css">
 <script type="text/javascript" src="/zPortal/assets/js/dockspwan/dockspawn.js"></script>
+
 
 
 <script src="/zPortal/assets/js/jquery-ui/jquery-ui.min.js"></script>
@@ -35,26 +35,6 @@
 <script src="/zPortal/jspanel/jquery.jspanel.js"></script>
 
 <style>
-body {
-	background-color: #F8F8F8;
-	font-family: 'Open Sans', sans-serif;
-	font-size: 14px;
-	font-weight: normal;
-	line-height: 1.2em;
-	margin: 0px;
-	overflow: hidden;
-	position: fixed;
-}
-
-div {
-	-webkit-user-select: none; /* Chrome/Safari */
-	-moz-user-select: none; /* Firefox */
-	-ms-user-select: none; /* IE10+ */
-	/* Rules below not implemented in browsers yet */
-	-o-user-select: none;
-	user-select: none;
-}
-
 .panel-header {
 	background-color: #000;
 	color: #888;
@@ -208,6 +188,7 @@ div {
 	var reports = [];
 	var currentTree = null;
 	var panelCount = 0;
+	var cssmenu_to = false; //menu search
 
 	if (parameters.length == 1) {
 		fileName = parameters[0].split("=")[1];
@@ -295,7 +276,12 @@ div {
 		html += '			<h2>';
 		html += '				<a href="#">보고서</a>';
 		html += '			</h2>';
-		html += '			<div id="cssmenu" style="width: 100%; min-height: 200px;"></div>';
+		html += '			<div>';
+		html += '				<ul>';
+		html += '					<li><input type="text" id="cssmenu_q" value="" class="input" style="margin: 0em auto 1em auto; display: block; padding: 4px; border-radius: 4px; border: 1px solid silver;" /></li>';
+		html += '					<li><div id="cssmenu" style="width: 100%; min-height: 200px;"></div></li>';
+		html += '				</ul>';
+		html += '			</div>';
 		html += '			<h2>';
 		html += '				<a href="#">필터개체</a>';
 		html += '			</h2>';
@@ -376,7 +362,7 @@ div {
 			toolbarFooter: arr,
 			size : {
 				width : 300,
-				height : 300
+				height : 400
 			}
 		});
 
@@ -445,6 +431,16 @@ div {
 					 },
 					"plugins" : [ "wholerow" , "types" , "search", "state", "dnd"]
 				});
+				
+				$('#cssmenu_q').keyup(function() {
+					if (cssmenu_to) {
+						clearTimeout(cssmenu_to);
+					}
+					to = setTimeout(function() {
+						var v = $('#cssmenu_q').val();
+						$('#cssmenu').jstree(true).search(v);
+					}, 250);
+				});
 
 				jQuery("#selectionObjects").draggable({
 					handle : ".ui-widget-header"
@@ -494,6 +490,8 @@ div {
 			menuTp = node.data.data.menuTp;
 			text = node.data.data.menuNm;
 		}
+		
+		if(menuTp=="F" || menuTp=="D") return;
 		
 		var divId = "#report" +  id;
 		

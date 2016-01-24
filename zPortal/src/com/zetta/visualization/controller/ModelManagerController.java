@@ -76,7 +76,7 @@ public class ModelManagerController {
 	        e.printStackTrace();
 	    }  
 	}
-		
+	
 	@RequestMapping(value = "/modelManager/reportInfo.do", method = RequestMethod.POST)
 	@ResponseBody
 	public void reportInfo(
