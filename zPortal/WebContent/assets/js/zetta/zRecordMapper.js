@@ -183,7 +183,8 @@ function getObjectInfo(vType) {
                             alert("파일정보가 없습니다.");
                             return;
                         } else {
-                            loadRecordMapper(tableData, msg, vType);
+                        	console.info("msg" , JSON.stringify(msg));
+                            loadRecordMapper(tableData, msg);
                         }
                     },
                     error: function(request, status, error) {
@@ -204,8 +205,8 @@ function getObjectInfo(vType) {
 }
 
 function saveRecordMapper() {
-    if (!myDiagram.isModified)
-        return;
+//    if (!myDiagram.isModified)
+//        return;
     saveDiagramProperties();
 
     var sendInfo = {
@@ -241,7 +242,7 @@ function saveRecordMapper() {
     });
 }
 
-function loadRecordMapper(zTables, zObjects, vType) {
+function loadRecordMapper(zTables, zObjects) {
     var sendInfo = {
         fileName: "process\\" + fileName,
         objectKey: objectKey
@@ -257,27 +258,12 @@ function loadRecordMapper(zTables, zObjects, vType) {
             if (msg[0] != "notFound") {
                 myDiagram.model = go.Model.fromJson(msg);
             } else {
-                //맞는 타입을 넣어준다.(디폴트로)
-                if (vType != "record") {
-                    //viualization 개체를 default로 
-                    myDiagram.model = $(go.GraphLinksModel, {
-                        linkFromPortIdProperty: "fromPort",
-                        linkToPortIdProperty: "toPort"
-                    });
-                    for (var index in zObjects) {
-                        if (zObjects[index].key == vType) {
-                            myDiagram.model.nodeDataArray.push(zObjects[index]);
-                            break;
-                        }
-                    }
-                    myDiagram.model = model;
-                } else {
-                    myDiagram.model = $(go.GraphLinksModel, {
-                        linkFromPortIdProperty: "fromPort",
-                        linkToPortIdProperty: "toPort"
-                    });
-                }
-
+                myDiagram.model = $(go.GraphLinksModel, {
+                    linkFromPortIdProperty: "fromPort",
+                    linkToPortIdProperty: "toPort"
+                });
+                
+                //model에 Default값을 넣는 방법을 고민해야한다.
             }
         },
         error: function(request, status, error) {
@@ -315,8 +301,36 @@ function zRecordMapper(zTables, zObjects) {
         column: 2,
         font: "11px sans-serif"
     }, new go.Binding("text", "info")));
+    
+    var dataTemplate = $(go.Panel, "TableRow", new go.Binding("portId", "name"), {
+        background: "transparent",
+        fromSpot: go.Spot.Right,
+        toSpot: go.Spot.Left,
+        fromLinkable: true,
+        toLinkable: true
+    }, $(go.Shape, {
+        width: 12,
+        height: 12,
+        column: 0,
+        strokeWidth: 2,
+        margin: 4,
+        fromLinkable: false,
+        toLinkable: false
+    }, new go.Binding("figure", "figure"), new go.Binding("fill", "color")), $(go.TextBlock, {
+        margin: new go.Margin(0, 2),
+        column: 1,
+        font: "bold 11px sans-serif",
+        fromLinkable: false,
+        toLinkable: false
+    }, new go.Binding("text", "name")), $(go.TextBlock, {
+        margin: new go.Margin(0, 2),
+        column: 2,
+        font: "11px sans-serif"
+    }, new go.Binding("text", "info")));
+
 
     var palscale = 2;
+    
     var recordNodeTemplate = $(go.Node, "Spot", {
             locationObjectName: "SHAPE",
             locationSpot: go.Spot.Center,
@@ -382,8 +396,8 @@ function zRecordMapper(zTables, zObjects) {
                 padding: 2,
                 minSize: new go.Size(100, 10),
                 defaultStretch: go.GraphObject.Horizontal,
-                itemTemplate: fieldTemplate
-            }, new go.Binding("itemArray", "fields")) // end Table Panel of items
+                itemTemplate: dataTemplate
+            }, new go.Binding("itemArray", "data")) // end Table Panel of items
         ) // end Vertical Panel
     ); // end go.Node, which is a Spot Panel with bound itemArray
 
@@ -402,13 +416,13 @@ function zRecordMapper(zTables, zObjects) {
     // create the nodeTemplateMap, holding main view node templates:
     var nodeTemplateMap = new go.Map("string", go.Node);
     nodeTemplateMap.add("record", recordNodeTemplate);
-    nodeTemplateMap.add("object", recordNodeTemplate);
+    nodeTemplateMap.add("object", objectNodeTemplate);
 
     // create the nodeTemplateMap, holding special palette "mini" node
     // templates:
     var palNodeTemplateMap = new go.Map("string", go.Node);
     palNodeTemplateMap.add("record", recordNodeTemplateForPalette);
-    palNodeTemplateMap.add("object", recordNodeTemplateForPalette);
+    palNodeTemplateMap.add("object", objectNodeTemplateForPalette);
 
     // ------------------------------------------the main
     // Diagram----------------------------------------------

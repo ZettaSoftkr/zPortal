@@ -169,7 +169,6 @@ zTree.prototype.makeHtml = function(tree, htmlFormat, html, type){
 
 //향후 타입은 기본값으로 가져가야 할것같다.
 zTree.prototype.getNodeHtml = function(tree, htmlFormat, html, type){
-	console.info("treeIcon tree info ::: ", JSON.stringify(tree));
 	switch (type){
 		case 'last':
 			if(htmlFormat.showIcon =='true'){
@@ -182,7 +181,7 @@ zTree.prototype.getNodeHtml = function(tree, htmlFormat, html, type){
 			if(htmlFormat.hrefFunction == '') {
 				html += '<span ' + htmlFormat.dragClass + '>' + tree.data.text + '</span>';	
 			}else{
-				html += '<a href="#">' + this.getIconClass(htmlFormat.showIcon, tree.data.data.menuTp) + '<span  onclick=\'javascript:' +htmlFormat.hrefFunction + '(' + tree.id + ');\' style="margin-left:3px;" >';
+				html += '<a href="#">' + this.getIconClass(htmlFormat.showIcon, tree.data.data.menuTp) + '<span  onclick=\'javascript:' +htmlFormat.hrefFunction + '("' + tree.id + '");\' style="margin-left:3px;" >';
 				html += tree.data.text;		
 				html += '</span></a>';
 			}
@@ -199,7 +198,7 @@ zTree.prototype.getNodeHtml = function(tree, htmlFormat, html, type){
 			if(htmlFormat.hrefFunction == '') {
 				html += '<span ' + htmlFormat.dragClass + '>' + tree.data.text + '</span>';	
 			}else{
-				html += '<a href="#">' + this.getIconClass(htmlFormat.showIcon, tree.data.data.menuTp) + '<span onclick=\'javascript:' +htmlFormat.hrefFunction + '(' + tree.id + ');\' style="margin-left:3px;" >';
+				html += '<a href="#">' + this.getIconClass(htmlFormat.showIcon, tree.data.data.menuTp) + '<span onclick=\'javascript:' +htmlFormat.hrefFunction + '("' + tree.id + '");\' style="margin-left:3px;" >';
 				html += tree.data.text;		
 				html += '</span></a>';
 			}
@@ -215,7 +214,7 @@ zTree.prototype.getNodeHtml = function(tree, htmlFormat, html, type){
 			if(htmlFormat.hrefFunction == '') {
 				html += '<span ' + htmlFormat.dragClass + '>' + tree.data.text + '</span>';	
 			}else{
-				html += '<a href="#">' + this.getIconClass(htmlFormat.showIcon, tree.data.data.menuTp) + '<span onclick=\'javascript:' +htmlFormat.hrefFunction + '(' + tree.id + ');\' style="margin-left:3px;" >';
+				html += '<a href="#">' + this.getIconClass(htmlFormat.showIcon, tree.data.data.menuTp) + '<span onclick=\'javascript:' +htmlFormat.hrefFunction + '("' + tree.id + '");\' style="margin-left:3px;" >';
 				html += tree.data.text;		
 				html += '</span></a>';
 			}

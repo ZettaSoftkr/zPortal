@@ -106,7 +106,7 @@ iframe {
 <script type="text/javascript">
 
 	var menuKey = null;
-	var editReport = '';
+	var editMode = false;
 	
 	var userInfo = null;
 	var rootNode = new zMRootNode();
@@ -114,7 +114,6 @@ iframe {
 	var fullTree = null;
 	var currentTree = null;
 	var smartNaviPanel = null;
-	var editProcess = 'view';
 	
 	function loadIframePage(pane, $Pane) {
 		if (!$Pane)
@@ -225,13 +224,16 @@ iframe {
 		});		
 		
 		
+		console.info("userinfo Strat");
 		$.ajax({
 			type : "POST",
 			url : "/zPortal/getUserInfo.do",
 			dataType : "json",
 			success : function(msg) {
 				userInfo = msg;
+				console.info(userInfo);
 				setMenu(userInfo.menu);
+				setConfig(userInfo.config);
 			},
 			error : function(request, status, error) {
 				alert("menu error:" + error);
@@ -271,6 +273,11 @@ iframe {
 		//left---------------------------------------------------------------------------
 		showLeft(menuKey);
 		//left---------------------------------------------------------------------------
+	}
+	
+	function setConfig(config){
+		editMode = config.editMode;
+		console.info("editMode", editMode);
 	}
 	
 
@@ -351,20 +358,22 @@ iframe {
 		var text = node.data.data.menuNm;
 		var dc = node.data.data.dc;
 		
+		console.info("runMenu editMode", editMode);
 		switch (menuTp) {
 			case 'R':
-				if(editProcess == 'edit'){
+				if(editMode == true){
 					document.getElementById('if_center').src = "/zPortal/zVM/zProcessManager.html?fileName=" + text;
 				}
 				else{
-					document.getElementById('if_center').src = "/zPortal/zVM/zRViewer.html?fileName=" + text;
+					document.getElementById('if_center').src = "/zPortal/zVM/zRviewer.html?fileName=" + text;
 				}
+				
 				return true;
 			case 'P':
 				showProgram('if_center', text);
 				return true;
 			case 'D':
-				if(editProcess == 'edit'){
+				if(editMode == true){
 					document.getElementById('if_center').src = "/zPortal/zVM/zDashboardManager.html?fileName=dashboards&objectKey=" + text;
 				}
 				else{

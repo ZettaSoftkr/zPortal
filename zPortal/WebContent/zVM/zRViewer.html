@@ -155,8 +155,19 @@ iframe {
 			dataType : "json",
 			success : function(msg) {
 					var reportInfo = msg;
-					document.getElementById('if_center').src = reportInfo.objectInfo[0].url + "?fileName=" + reportInfo.reportNm + "&objectKey=" + reportInfo.objectInfo[0].objectKey;
-
+					var found = false;
+					if(objectKey!=null){
+						for(var i in reportInfo){
+							if(reportInfo.objectInfo[i].objectKey==objectKey){
+								console.info(reportInfo.objectInfo[i].url + "?fileName=" + reportInfo.reportNm + "&objectKey=" + reportInfo.objectInfo[i].objectKey);
+								document.getElementById('if_center').src = reportInfo.objectInfo[i].url + "?fileName=" + reportInfo.reportNm + "&objectKey=" + reportInfo.objectInfo[i].objectKey;
+								found = true;
+							}
+						}
+						if(found==false) alert("알수없는 개체ID입니다.");
+					}else{
+						document.getElementById('if_center').src = reportInfo.objectInfo[0].url + "?fileName=" + reportInfo.reportNm + "&objectKey=" + reportInfo.objectInfo[0].objectKey;
+					}
 			},
 			error : function(request, status, error) {
 				alert("error:" + error);

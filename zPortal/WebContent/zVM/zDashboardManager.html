@@ -199,7 +199,7 @@
 
 	if(!fileName) fileName = "_new";
  
-	var $catalog = null;
+	var jQuerycatalog = null;
 	var dockManager, storeKey = 'lastState';
 
 	function refresh() {
@@ -307,6 +307,14 @@
 
 		var arr = [
 					{
+					    item:     '<button id="btnMove">대시보드추천</button>',
+					    event:    "click",
+					    btnclass: "btn-sm",
+					    callback: function( event ){ 
+					    	getDashboardAI();
+						}
+					},
+					{
 					    item:     '<button id="btnMove">메뉴로이동</button>',
 					    event:    "click",
 					    btnclass: "btn-sm",
@@ -325,7 +333,7 @@
 		               event:    "click",
 		               btnclass: "btn-sm",
 		               callback: function( event ){
-			            	   var menu = $.jsPanel({
+			            	   var menu = jQuery.jsPanel({
 			       				paneltype : {
 			       					type : 'modal',
 			       					mode : 'default'
@@ -346,8 +354,8 @@
 			       					height : '100%'
 			       				},
 			       				callback : function(panel) {
-			       					$("iframe", panel).load(function(e) {
-			       						$(e.target).fadeIn(200);
+			       					jQuery("iframe", panel).load(function(e) {
+			       						jQuery(e.target).fadeIn(200);
 			       					});
 			       				}
 			       			});
@@ -355,109 +363,154 @@
 		           }
 		       ];
 		
-		var $newPanel = $.jsPanel({
+		var jQuerynewPanel = jQuery.jsPanel({
 			title : "오브젝트선택",
 			theme : "light",
 			position : "center",
 			toolbarFooter: arr,
 			size : {
-				width : 300,
+				width : 350,
 				height : 400
 			}
 		});
 
-		$newPanel.content.append(html);
+		jQuerynewPanel.content.append(html);
 
-		$catalog = $("#catalog");
-
-		$.ajax({
+		jQuery.ajax({
 			type : "POST",
 			url : "/zPortal/modelManager/load.do",
 			dataType : "json",
 			success : function(msg) {
-				var rootNode = new zMRootNode();
-				rootNode.fromObject(msg);				
-				rootNode.setTypeFiltering(['F','D','R','V','L']);
+				var vObjectInfos = msg;
+				console.info("vObjectInfos", JSON.stringify(vObjectInfos));
 				
-				var treeRoot = new zTree('#');
-				treeRoot.setDataRootNode(rootNode);
-				
-				console.info("initFromLinkModel started rootNode", JSON.stringify(rootNode));
-				var tree = treeRoot.initFromLinkModel(rootNode, treeRoot);
-				currentTree = tree;
-				
-				var html = '';
-				var result = tree.getJsTreeHtml({
-							nodeTag:"li", 
-							grouppingTag: "ul", 
-							hasChildClass: '', 
-							lastNodeClass:'', 
-							hrefFunction:'addItem', 
-							showIcon:'true',
-							dragClass:''});
-				
-				if(result != ''){
-					html += result;
-				}
-				else{
-					html += '<ul><li><a href="#"><span>메뉴없음</span></a></li></ul>';
-				}
-				
-				console.info("보고서 트리 결과 html",html);
-				$("#cssmenu").html(html);
-				
-				$('#cssmenu').jstree(
-				{
-					"core" : {
-							"check_callback" : true
+				jQuery.ajax({
+					type : "POST",
+					url : "/zPortal/modelManager/load.do",
+					dataType : "json",
+					success : function(msg) {
+						var rootNode = new zMRootNode();
+						rootNode.fromObject(msg);
+						
+						//하위 visualizaton object를 붙여준다.
+						for(var i in rootNode.nodeDataArray){
+							for(var v in vObjectInfos){
+								if(rootNode.nodeDataArray[i].category == "Report" && rootNode.nodeDataArray[i].text == vObjectInfos[v].fileName){
+									for(var o in vObjectInfos[v].vObjects){
+										//왜 undefine이 나오는지 모르겠다.
+										if(vObjectInfos[v].vObjects[o].category){
+											var node = {
+												"category":vObjectInfos[v].vObjects[o].category,
+												"key":rootNode.nodeDataArray[i].key + "_" + vObjectInfos[v].vObjects[o].key, 
+												"text":vObjectInfos[v].vObjects[o].text,
+												"data":{
+													"menuId": rootNode.nodeDataArray[i].key + "_" + vObjectInfos[v].vObjects[o].key, 
+													"menuNm": vObjectInfos[v].vObjects[o].text, 
+													"menuTp":"V", 
+													"sortSn":"1", 
+													"dc":vObjectInfos[v].vObjects[o].text
+												}
+											};
+											var link = {from:rootNode.nodeDataArray[i].key, to:rootNode.nodeDataArray[i].key + "_" + vObjectInfos[v].vObjects[o].key};
+											rootNode.nodeDataArray.push(node);
+											rootNode.linkDataArray.push(link);
+											console.info("add vObjects",node, link);
+										}
+									}
+								}
+							}
+						}
+						
+						//rootNode.setTypeFiltering(['F','D','R','V','L']);
+						
+						var treeRoot = new zTree('#');
+						treeRoot.setDataRootNode(rootNode);
+						
+						console.info("initFromLinkModel started rootNode", JSON.stringify(rootNode));
+						var tree = treeRoot.initFromLinkModel(rootNode, treeRoot);
+						currentTree = tree;
+						
+						var html = '';
+						var result = tree.getJsTreeHtml({
+									nodeTag:"li", 
+									grouppingTag: "ul", 
+									hasChildClass: '', 
+									lastNodeClass:'', 
+									hrefFunction:'addItem', 
+									showIcon:'true',
+									dragClass:''});
+						
+						if(result != ''){
+							html += result;
+						}
+						else{
+							html += '<ul><li><a href="#"><span>메뉴없음</span></a></li></ul>';
+						}
+						
+						console.info("보고서 트리 결과 html",html);
+						jQuery("#cssmenu").html(html);
+						
+						jQuery('#cssmenu').jstree(
+						{
+							"core" : {
+									"check_callback" : true
+							},
+
+							"types" : {
+							      "default" : {
+							        "icon" : "fa fa-folder-o"
+							      },
+							      "D" : {
+							        "icon" : "fa fa-laptop"
+							      },
+							      "R" : {
+							        "icon" : "fa fa-cogs"
+							      },
+							      "V" : {
+							        "icon" : "fa fa-cog"
+							      },
+							      "L" : {
+								        "icon" : "fa fa-link"
+								      }
+							 },
+							"plugins" : [ "wholerow" , "types" , "search", "state", "dnd"]
+						});
+						
+						jQuery('#cssmenu_q').keyup(function() {
+							if (cssmenu_to) {
+								clearTimeout(cssmenu_to);
+							}
+							to = setTimeout(function() {
+								var v = jQuery('#cssmenu_q').val();
+								jQuery('#cssmenu').jstree(true).search(v);
+							}, 250);
+						});
+
+						jQuery("#selectionObjects").draggable({
+							handle : ".ui-widget-header"
+						}).resizable({
+							stop : function() {
+								;
+							}
+						});
+
+						jQuery("#catalog").accordion();
 					},
-
-					"types" : {
-					      "default" : {
-					        "icon" : "fa fa-folder-o"
-					      },
-					      "D" : {
-					        "icon" : "fa fa-laptop"
-					      },
-					      "R" : {
-					        "icon" : "fa fa-cogs"
-					      },
-					      "V" : {
-					        "icon" : "fa fa-cog"
-					      },
-					      "L" : {
-						        "icon" : "fa fa-link"
-						      }
-					 },
-					"plugins" : [ "wholerow" , "types" , "search", "state", "dnd"]
-				});
-				
-				$('#cssmenu_q').keyup(function() {
-					if (cssmenu_to) {
-						clearTimeout(cssmenu_to);
-					}
-					to = setTimeout(function() {
-						var v = $('#cssmenu_q').val();
-						$('#cssmenu').jstree(true).search(v);
-					}, 250);
-				});
-
-				jQuery("#selectionObjects").draggable({
-					handle : ".ui-widget-header"
-				}).resizable({
-					stop : function() {
-						;
+					error : function(request, status, error) {
+						alert("error:" + error);
+					},
+					data : {
+						fileName : 'system',
+						objectKey : 'menu'
 					}
 				});
-
-				$catalog.accordion();
 			},
 			error : function(request, status, error) {
 				alert("error:" + error);
 			},
 			data : {
-				fileName : 'system',
-				objectKey : 'menu'
+				fileName : 'process',
+				objectKey : 'vObjectInfos'
 			}
 		});
 
@@ -469,7 +522,7 @@
 		var documentNode = dockManager.context.model.documentManagerNode;
 		for (var i = 0; i < reports.length; i++) {
 			var report = reports[i];
-			$("#panels").append('<div id="report' +  report.id + '" data-panel-caption="' + report.divId + '" class="report"></div>');				
+			jQuery("#panels").append('<div id="report' +  report.id + '" data-panel-caption="' + report.divId + '" class="report"></div>');				
 			var newPane = new dockspawn.PanelContainer(document.getElementById('report' + report.id), dockManager);
 		}
 		
@@ -477,7 +530,7 @@
 
 	function addItem(id) {
 		var node = currentTree.findNode(currentTree, id);
-		console.info("node", JSON.stringify(node));
+		console.info("node", id, JSON.stringify(node));
 		
 		var menuTp = '';
 		var text = '';
@@ -491,13 +544,13 @@
 			text = node.data.data.menuNm;
 		}
 		
-		if(menuTp=="F" || menuTp=="D") return;
+		if(menuTp=="F" || menuTp=="D" || menuTp == "R" || menuTp == "P") return;
 		
 		var divId = "#report" +  id;
 		
 		reports[reports.length] = {id:id, divId:divId, text:text, type:menuTp, width:null, height:null, position:null};
 
-		$("#panels").append('<div id="report' +  id + '" class="report" style="border: 1px solid gray;"></div>');
+		jQuery("#panels").append('<div id="report' +  id + '" class="report" style="border: 1px solid gray;"></div>');
 		
 		//panel추가
 		var documentNode = dockManager.context.model.documentManagerNode;
@@ -511,7 +564,7 @@
 			dockManager.dockLeft(documentNode, newPane, 0.3);
 		}
 		
-		$("#panels").hide();
+		jQuery("#panels").hide();
 	}
 
 	function saveDashboard() {
@@ -524,13 +577,13 @@
 		reports = getLayoutInfo(reports);
 		console.info("save modelStr::::" + modelStr);
 
-		$.ajax({
+		jQuery.ajax({
 			type : "POST",
 			url : "/zPortal/modelManager/save.do",
 			dataType : "json",
 			success : function(msg) {
 				
-				$.ajax({
+				jQuery.ajax({
 					type : "POST",
 					url : "/zPortal/modelManager/save.do",
 					dataType : "json",
@@ -561,16 +614,16 @@
 	function getLayoutInfo(){
 		for (var index = 0 ; index < reports.length ; index++){
 			console.info("reports[index]", JSON.stringify(reports[index]));
-			console.info("positions::",reports[index].divId, $(reports[index].divId).parent().position());
+			console.info("positions::",reports[index].divId, jQuery(reports[index].divId).parent().position());
 			
-			var position = $(reports[index].divId).parent().position();
+			var position = jQuery(reports[index].divId).parent().position();
 			if(position.top  < 30) position.top =  position.top - 20;
 			if(position.top  >= 30) position.top =  position.top - 30;
 			if(position.left  == 0) position.left =  position.left + 5;
 			
 			reports[index].position = position;
-			reports[index].width = $(reports[index].divId).width() - 10;
-			reports[index].height = $(reports[index].divId).height() - 15;
+			reports[index].width = jQuery(reports[index].divId).width() - 10;
+			reports[index].height = jQuery(reports[index].divId).height() - 15;
 		}
 		return reports;
 	}
@@ -595,13 +648,13 @@
 		}
 
 		if (model.state.element) {
-			$("#" + parent).append('<div id="' + model.state.element + '" ' + currentClass + '></div>');
-			$("#" + model.state.element).width(model.state.width);
-			$("#" + model.state.element).height(model.state.height);
+			jQuery("#" + parent).append('<div id="' + model.state.element + '" ' + currentClass + '></div>');
+			jQuery("#" + model.state.element).width(model.state.width);
+			jQuery("#" + model.state.element).height(model.state.height);
 		} else {
-			$("#" + parent).append('<div id="layout' + key + '" ' + currentClass + '></div>');
-			$("#layout" + key).width(model.state.width);
-			$("#layout" + key).height(model.state.height);
+			jQuery("#" + parent).append('<div id="layout' + key + '" ' + currentClass + '></div>');
+			jQuery("#layout" + key).width(model.state.width);
+			jQuery("#layout" + key).height(model.state.height);
 		}
 
 		return model.containerType;
@@ -613,7 +666,7 @@
 			event : "click",
 			btnclass : "btn-sm",
 			callback : function(event) {
-				fileName = $("#fileName").val();
+				fileName = jQuery("#fileName").val();
 				saveDashboard();
 				event.data.close();
 			}
@@ -626,7 +679,7 @@
 			}
 		} ];
 
-		var $newPanel = $.jsPanel({
+		var jQuerynewPanel = jQuery.jsPanel({
 			title : "메뉴설정",
 			paneltype : 'modal',
 			theme : "light",
@@ -642,7 +695,7 @@
 		html += '<label for="fileName">대시보드명 : </label><input type="text" id="fileName" >';
 		html += '</span>';
 
-		$newPanel.content.append(html);
+		jQuerynewPanel.content.append(html);
 
 	}
 
@@ -663,14 +716,14 @@
 		console.info('reports.length', reports.length);
 		for (var i = 0; i < reports.length; i++) {
 			var report = reports[i];
-			$("#panels")
+			jQuery("#panels")
 					.append(
 							'<div id="report' +  report.id + '" data-panel-caption="' + report.text + '" class="report"></div>');
 		}
 	}
 
 	function dashboardLoad() {
-		$.ajax({
+		jQuery.ajax({
 			type : "POST",
 			url : "/zPortal/modelManager/load.do",
 			dataType : "json",
@@ -678,7 +731,7 @@
 				reports = msg;
 				setPanels(reports);
 
-				$.ajax({
+				jQuery.ajax({
 					type : "POST",
 					url : "/zPortal/modelManager/load.do",
 					dataType : "json",
@@ -701,6 +754,35 @@
 			data : {
 				fileName : fileName,
 				objectKey : objectKey
+			}
+		});
+	}
+	
+	function getDashboardAI(){
+		jQuery.jsPanel({
+			paneltype : {
+				type : 'modal',
+				mode : 'default'
+			},
+			size : {
+				width : window.innerWidth * 0.8,
+				height : window.innerHeight * 0.8
+			},
+			theme : 'medium',
+			title : "대시보드추천",
+			iframe : {
+				src : "/zPortal/zVM/zDashboardMaker.html",
+				style : {
+					"display" : "none",
+					"border" : "10px solid transparent"
+				},
+				width : '100%',
+				height : '100%'
+			},
+			callback : function(panel) {
+				jQuery("iframe", panel).load(function(e) {
+					jQuery(e.target).fadeIn(200);
+				});
 			}
 		});
 	}

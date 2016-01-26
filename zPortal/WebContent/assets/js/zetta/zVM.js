@@ -1850,6 +1850,7 @@ function saveServerDocument(fileName, objectKey, content, type) {
 		dataType : "json",
 		success : function(msg) {
 			if (msg) {
+				saveVObjectInfos(fileName, myDiagram.model);
 				if(type=="new"){
 					alert("생성되었습니다.");
 				}

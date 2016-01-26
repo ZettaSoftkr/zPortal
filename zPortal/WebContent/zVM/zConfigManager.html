@@ -42,7 +42,7 @@ h1 {
 		<div class="col-sm-6 col-lg-4">
 			<h2 class="h4">Edit Mode</h2>
 			<p>
-				<input id="switch-state" type="checkbox" checked>
+				<input id="editMode" type="checkbox">
 			</p>
 		</div>
 		
@@ -107,21 +107,64 @@ h1 {
 			</div>
 		</div>
 	</div>
+	<button id="saveBtn">변경된 정보 저장</button>
 </body>
 <script src="/zPortal/assets/js/bootstrap/bootstrap.min.js"></script>
 <script src="/zPortal/assets/js/bootstrap/bootstrap-switch.min.js"></script>
 <script>
-
-$(function() {
-
-    $("input[type=\"checkbox\"], input[type=\"radio\"]").not("[data-switch-no-init]").bootstrapSwitch();
-    $("[data-switch-get]").on("click", function() {
-      var type;
-      type = $(this).data("switch-get");
-      return alert($("#switch-" + type).bootstrapSwitch(type));
+var userInfo = null;
+var userId = null;
+window.onload = function(){
+	$("input[type=\"checkbox\"], input[type=\"radio\"]").not("[data-switch-no-init]").bootstrapSwitch();    
+	$("#saveBtn").on("click", function() {
+		userInfo.config.editMode = $("#editMode").bootstrapSwitch("state");
+		saveUserInfo(userId, userInfo);
     });
-    
-  });
-  
+	
+    $.ajax({
+		type : "POST",
+		url : "/zPortal/getUserInfo.do",
+		dataType : "json",
+		success : function(msg) {
+			userInfo = msg;
+			userId = userInfo.userId;
+			console.info("userInfo.config.editMode", userInfo.config.editMode);
+			$("#editMode").bootstrapSwitch("state",userInfo.config.editMode);
+			
+		},
+		error : function(request, status, error) {
+			alert("menu error:" + error);
+		}
+	});
+}
+
+
+function saveUserInfo(userId, config){
+		if(config == null) return;
+		var sendInfo = {
+			fileName : "users",
+			objectKey : userId,
+			content : JSON.stringify(config)
+ 		};
+
+		jQuery.ajax({
+			type : "POST",
+			url : "/zPortal/modelManager/save.do",
+			dataType : "json",
+			success : function(msg) {
+				if (msg) {
+					alert("저장했습니다.");
+					top.document.location.href = "/zPortal/zVM/zViewer.html";
+				} else {
+					alert("환경셋팅에 실패했습니다.");
+					window.close();
+				}
+			},
+			error : function(request, status, error) {
+				alert("request:" + request.responseText + "\n error:" + error);
+			},
+			data : sendInfo
+		});		
+	}
 </script>
 </html>

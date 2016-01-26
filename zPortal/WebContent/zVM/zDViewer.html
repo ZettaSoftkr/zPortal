@@ -53,7 +53,7 @@
        			success : function(msg) {
 		        	var rootNode = new zMRootNode();
 					rootNode.fromObject(msg);				
-					rootNode.setTypeFiltering(['F','D','R','V','L']);
+// 					rootNode.setTypeFiltering(['F','D','R','V','L']);
 					
 					var treeRoot = new zTree('#');
 					treeRoot.setDataRootNode(rootNode);
@@ -97,65 +97,109 @@
         }
         
         function setPanels(){
-        	console.info('reports.length',reports.length);
+        	console.info('reports',reports);
 			
         	for (var i = 0; i < reports.length; i++) {
         		var report = reports[i];
+        		var reportId = report.id;
+        		//대시보드에서 표현하는것은 V, L둘중에 하나이다.
+    			//만약 V인경우에는 id_objectkey 형태로 들어오게됨.
+        		var subObjectKeys = report.id.toString().split("_");
+        		var subObjectKey = null;
+        		if(subObjectKeys.length == 2){
+        			subObjectKey = subObjectKeys[1];
+        			reportId = subObjectKeys[0];
+        		}else{
+        			subObjectKey = null;
+        		}
         		
-        		var node = currentTree.findNode(currentTree, report.id);
+        		console.info(reportId, subObjectKey);
+        		var node = currentTree.findNode(currentTree, reportId);
     			if(node == null) {
     				alert("잘못된 아이디입니다."); 
     				return;
     			}
-
-				var $newPanel = $.jsPanel({
-            	    title:    node.data.data.menuNm,
-            	    theme:    "light",
-            	    position: 	report.position,
-            	    size: { width: report.width, height: report.height },
-            	    iframe: {
-            	        src:    loadReportHtml(node),
-            	        style:  {"display": "none", "border": "10px solid transparent"},
-            	        width:  '100%',
-            	        height: '100%'
-            	    },
-            	    callback: function (panel) {
-            	        $("iframe", panel).load(function (e) {
-            	          $(e.target).fadeIn(100);
-            	        });
-            	    }
-            	});				
+    			
+    			showPanel(node, subObjectKey, report);			
 			}
         }
         
-        function loadReportHtml(node){
-
+        function showPanel(node, subObjectKey, report){
         	var key = node.id;
         	var menuTp = node.data.data.menuTp;
 			var text = node.data.data.menuNm;
 			var dc = node.data.data.dc
 			
+			console.info("menuTp", menuTp);
 			switch (menuTp) {
 				case 'R':
-					if(editProcess == 'edit'){
-						return "/zPortal/zVM/zProcessManager.html?fileName=" + text;
-					}
-					else{
-						return  "/zPortal/zVM/zRViewer.html?fileName=" + text;
-					}
-				case 'D':
-					if(editProcess == 'edit'){
-						return  "/zPortal/zDashboard/zDashboardManager.html?fileName=dashboards&objectKey=" + text;
-					}
-					else{
-						return  "/zPortal/zDashboard/zDViewer.html?fileName=dashboards&objectKey=" + text;
-					}
-				case 'F':
-					return;
+					$.ajax({
+						type : "POST",
+						url : "/zPortal/modelManager/reportInfo.do",
+						dataType : "json",
+						success : function(msg) {
+								var reportInfo = msg;
+								var found = false;
+								var url = "";
+								
+								console.info("reportInfo", reportInfo);
+								if(objectKey!=null){
+									for(var i in reportInfo.objectInfo){
+										if(reportInfo.objectInfo[i].objectKey==subObjectKey){
+											url = reportInfo.objectInfo[i].url + "?fileName=" + reportInfo.reportNm + "&objectKey=" + reportInfo.objectInfo[i].objectKey;
+											found = true;
+										}
+									}
+									if(!found) url = "/zPortal/zPortal/error/err404.jsp";
+								}else{
+									url = reportInfo.objectInfo[0].url + "?fileName=" + reportInfo.reportNm + "&objectKey=" + reportInfo.objectInfo[0].objectKey;
+								}
+								
+								console.info("url", url);
+								
+								var $newPanel = $.jsPanel({
+				            	    title:    node.data.data.menuNm,
+				            	    theme:    "light",
+				            	    position: 	report.position,
+				            	    size: { width: report.width, height: report.height },
+				            	    iframe: {
+				            	        src:    url,
+				            	        style:  {"display": "none", "border": "10px solid transparent"},
+				            	        width:  '100%',
+				            	        height: '100%'
+				            	    },
+				            	    callback: function (panel) {
+				            	        $("iframe", panel).load(function (e) {
+				            	          $(e.target).fadeIn(100);
+				            	        });
+				            	    }
+				            	});
+						},
+						error : function(request, status, error) {
+							alert("error:" + error);
+						},
+						data : {fileName:"process\\" + node.data.text}
+					});
+					break;
 				case 'L':
-					return  dc;
-				case 'H':  //home
-					return  '/zPortal/zVM/zViewer.html';
+					var $newPanel = $.jsPanel({
+	            	    title:    node.data.data.menuNm,
+	            	    theme:    "light",
+	            	    position: 	report.position,
+	            	    size: { width: report.width, height: report.height },
+	            	    iframe: {
+	            	        src:    dc,
+	            	        style:  {"display": "none", "border": "10px solid transparent"},
+	            	        width:  '100%',
+	            	        height: '100%'
+	            	    },
+	            	    callback: function (panel) {
+	            	        $("iframe", panel).load(function (e) {
+	            	          $(e.target).fadeIn(100);
+	            	        });
+	            	    }
+	            	});	
+					break;
 				default:
 					alert('알수없는 메뉴입니다.\n 관리자에게 메뉴를 확인하세요.');
 					return "";

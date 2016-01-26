@@ -139,7 +139,7 @@ zMRootNode.prototype.setTypeFiltering = function(types){
 			return ( entry.category == checkName);
 		});
     	
-		console.info("temp:" + JSON.stringify(temp));
+		console.info("temp:" ,types[index] , JSON.stringify(temp));
     	if(filteredDataArray == null) filteredDataArray = temp;
     	else jQuery.merge(filteredDataArray, temp);
 	}
@@ -208,7 +208,7 @@ zMRootNode.prototype.getFullType = function(menuTp){
 		case ('D'):
 			return 'Dashboard';
 		case ('V'):
-			return 'VisaulizationObject';
+			return 'visualization';
 		default:
 			return null;
 	}

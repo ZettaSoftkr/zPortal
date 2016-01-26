@@ -77,7 +77,7 @@
 										}										
 									},
 									error : function(request, status, error) {
-										alert("userId 상이합니다.");
+										alert("userId가 상이합니다.");
 									},
 									data : {fileName : 'users', objectKey : userId}
 								});
@@ -263,7 +263,8 @@
  				  "orgNm": "",
  				  "menu": null,
  				  "cart": [],
- 				  "favorite": []
+ 				  "favorite": [],
+ 				  "config": null
  				};
  		
  		var userInfo = getUserInfo(userId, users, userGroupAll);	
@@ -276,6 +277,8 @@
 		currentUserInfo.menu = getUserMenu(userGroups, menuAll);
 		//증겨찾기 정보는 트리형태로 관리된다.
 		//cart는 날짜를 넣어서 관리한다.
+		var config = {editMode:false};
+		currentUserInfo.config = config;
 		saveUserInfo(userId, currentUserInfo);
 	}
 	
