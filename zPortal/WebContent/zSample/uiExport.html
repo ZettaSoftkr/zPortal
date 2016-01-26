@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+
+<title>ZettaSoft ExportDemo</title>
+
+<!-- Bootstrap Core CSS -->
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="/zPortal/assets/css/bootstrap/bootstrap.min.css">
+
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/jquery-2.1.4.min.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/bootstrap/bootstrap.min.js"></SCRIPT>
+<script type="text/javascript" src="tableExport.js"></script>
+<script type="text/javascript" src="jquery.base64.js"></script>
+<script type="text/javascript" src="html2canvas.js"></script>
+<script type="text/javascript" src="jspdf/libs/sprintf.js"></script>
+<script type="text/javascript" src="jspdf/jspdf.js"></script>
+<script type="text/javascript" src="jspdf/libs/base64.js"></script>
+
+<style>
+body {
+	padding-top: 70px;
+}
+
+footer {
+	margin: 50px 0;
+}
+
+.padded-left {
+	padding-left: 10px;
+}
+
+.padded-right {
+	padding-right: 10px;
+}
+</style>
+
+</head>
+
+<body>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">Export HTML Table Demo</h3>
+			<div class="pull-right">
+				<button class="btn btn-danger toggle" data-toggle="exportTable">
+					<i class="fa fa-bars"></i> Export Data
+				</button>
+			</div>
+		</div>
+		<div class="panel-body" id="exportTable" style="display: none">
+			<div class="row">
+				<div class="col-md-3">
+					<div class="list-group border-bottom">
+						<a href="#" class="list-group-item" onClick="exportFile('json');"><img src='/zPortal/assets/images/fileIcon/json.png' width="24" />
+							JSON</a> <a href="#" class="list-group-item" onClick="exportFile('jsonOnly');"><img
+							src='/zPortal/assets/images/fileIcon/json.png' width="24" /> JSON (ignoreColumn)</a> <a href="#" class="list-group-item"
+							onClick="exportFile('jsonEscape');"><img src='/zPortal/assets/images/fileIcon/json.png' width="24" /> JSON (with Escape)</a>
+					</div>
+				</div>
+				<div class="col-md-2">
+					<div class="list-group border-bottom">
+						<a href="#" class="list-group-item" onClick="$('#customers').tableExport({type:'xml',escape:'false'});"><img src='/zPortal/assets/images/fileIcon/xml.png' width="24" /> XML</a> <a
+							href="#" class="list-group-item" onClick="$('#customers').tableExport({type:'sql'});"><img src='/zPortal/assets/images/fileIcon/sql.png' width="24" /> SQL</a>
+					</div>
+				</div>
+				<div class="col-md-2">
+					<div class="list-group border-bottom">
+						<a href="#" class="list-group-item" onClick="exportFile('csv');"><img src='/zPortal/assets/images/fileIcon/csv.png' width="24" /> CSV</a> <a
+							href="#" class="list-group-item" onClick="exportFile('txt');"><img src='/zPortal/assets/images/fileIcon/txt.png' width="24" /> TXT</a>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="list-group border-bottom">
+						<a href="#" class="list-group-item" onClick="exportFile('xls');"><img src='/zPortal/assets/images/fileIcon/xls.png' width="24" /> XLS</a>
+						<a href="#" class="list-group-item" onClick="$('#customers').tableExport({type:'doc',escape:'false'});"><img src='/zPortal/assets/images/fileIcon/word.png' width="24" /> Word</a>
+						<a href="#" class="list-group-item" onClick="$('#customers').tableExport({type:'powerpoint',escape:'false'});"><img src='/zPortal/assets/images/fileIcon/ppt.png' width="24" />
+							PowerPoint</a>
+					</div>
+				</div>
+				<div class="col-md-2">
+					<div class="list-group border-bottom">
+						<a href="#" class="list-group-item" onClick="exportFile('png');"><img src='/zPortal/assets/images/fileIcon/png.png' width="24" /> PNG</a> <a
+							href="#" class="list-group-item" onClick="exportFile('png')"><img src='/zPortal/assets/images/fileIcon/pdf.png' width="24" /> PDF</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel-body panel-body-table">
+			<table id="customers" class="table table-striped">
+				<thead>
+					<tr>
+						<th>Country</th>
+						<th>Population</th>
+						<th>Date</th>
+						<th>%ge</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>Chinna</td>
+						<td>1,363,480,000</td>
+						<td>March 24, 2014</td>
+						<td>19.1</td>
+					</tr>
+					<tr>
+						<td>India</td>
+						<td>1,241,900,000</td>
+						<td>March 24, 2014</td>
+						<td>17.4</td>
+					</tr>
+					<tr>
+						<td>United States</td>
+						<td>317,746,000</td>
+						<td>March 24, 2014</td>
+						<td>4.44</td>
+					</tr>
+					<tr>
+						<td>Indonesia</td>
+						<td>249,866,000</td>
+						<td>July 1, 2013</td>
+						<td>3.49</td>
+					</tr>
+					<tr>
+						<td>Brazil</td>
+						<td>201,032,714</td>
+						<td>July 1, 2013</td>
+						<td>2.81</td>
+					</tr>
+				</tbody>
+			</table>
+
+		</div>
+	</div>
+	
+	<a onclick="$(this).attr('href', 'data:text/plain;base64,' + utf8_to_b64($('html').clone().find('#generate').remove().end()[0].outerHTML));" download="index.html" id="generate">Generate static</a>
+
+
+	<div id="download">
+		<p>download</p>
+	</div>
+
+	<script type="text/javascript">
+
+	var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+	// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+	var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
+	var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+	// At least Safari 3+: "[object HTMLElementConstructor]"
+	var isChrome = !!window.chrome && !isOpera;              // Chrome 1+
+	var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
+
+	
+	$(document).ready(function(){   
+	    /* TOGGLE FUNCTION */
+	    $(".toggle").on("click",function(){
+	        var elm = $("#"+$(this).data("toggle"));
+	        if(elm.is(":visible"))
+	            elm.addClass("hidden").removeClass("show");
+	        else
+	            elm.addClass("show").removeClass("hidden");
+	        
+	        return false;
+	    });
+	  });  
+	
+	
+	function exportFile(fileType){
+		
+		console.info('fileType::', fileType);
+		var fileName = "download";
+		switch (fileType){
+			case 'json':
+				var content = $('#customers').tableExport({type:fileType,escape:'false'});
+				exportAjax('json', fileName+'.json', content);
+				break;
+			case 'jsonOnly':
+				var content = $('#customers').tableExport({type:'json',escape:'false',ignoreColumn:'[2,3]'});
+				exportAjax('json', fileName+'.json', content);
+				break;
+			case 'jsonEscape':
+				var content = $('#customers').tableExport({type:'json',escape:'true'});
+				exportAjax('json', fileName+'.json', content);
+				break;
+			case 'xml':
+				var content = $('#customers').tableExport({type:fileType,escape:'false'});
+				exportAjax(fileType, fileName+'.'+ fileType, content);
+				break;
+			case 'sql':
+				var content = $('#customers').tableExport({type:fileType,escape:'false'});
+				exportAjax(fileType, fileName+'.'+ fileType, content);
+				break;
+			case 'csv':
+				var content = $('#customers').tableExport({type:fileType,escape:'false'});
+				exportAjax(fileType, fileName+'.'+ fileType, content);
+				break;
+			case 'txt':
+				var content = $('#customers').tableExport({type:fileType,escape:'false'});
+				exportAjax(fileType, fileName+'.'+ fileType, content);
+				break;
+			case 'xls':
+				var content = $('#customers').tableExport({type:'excel',escape:'false'});
+				exportAjax(fileType, fileName+'.'+ fileType, content);
+				break;
+			case 'doc':
+				var content = $('#customers').tableExport({type:fileType,escape:'false'});
+				exportAjax(fileType, fileName+'.'+ fileType, content);
+				break;
+			case 'ppt':
+				var content = $('#customers').tableExport({type:fileType,escape:'false'});
+				exportAjax(fileType, fileName+'.'+ fileType, content);
+				break;
+			case 'png':
+				var content = $('#customers').tableExport({type:'png',escape:'false'});
+				exportAjax(fileType, fileName+'.'+ fileType, content);
+				break;
+			case 'pdf':
+				var content = $('#customers').tableExport({type:'pdf',escape:'false'});
+				exportAjax(fileType, fileName+'.'+ fileType, content);
+				break;
+			default:
+				break;
+		}
+	}
+	
+	function exportAjax(fileType,fileName,content){
+		
+		console.info("??",isIE);
+		
+		//Save file
+		if (isIE) {
+			console.info("console.info(isIE);",isIE);
+// 			content = "asdfadsf";
+		    if(window.navigator.msSaveBlob){
+		        var blob = new Blob([content],{ type: "application/" + fileType + ";charset=base64;"});
+		        navigator.msSaveBlob(blob, fileName);
+		    }
+		}
+		else
+		{
+		    window.open('data:application/'+fileType+';filename=' + fileName + ';base64,' + content);
+		}
+	 	
+	}
+</script>
+
+</body>
+</html>

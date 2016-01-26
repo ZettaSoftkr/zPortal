@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<body>
+<img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4QBgRXhpZgAASUkqAAg
+AAAACADEBAgAHAAAAJgAAAGmHBAABAAAALgAAAAAAAABQaWNhc2EAAAMAAJAHAAQAAAAwMjIwAqAEAAE
+AAAAbAAAAA6AEAAEAAAAbAAAAAAAAAP/bAIQAAwICAwICAwMDAwQDAwQFCAUFBAQFCgcHBggMCgwMCwo
+LCw0OEhANDhEOCwsQFhARExQVFRUMDxcYFhQYEhQVFAEDBAQFBAUJBQUJFA0LDRQUFBUUFBQUFBQUDxQ
+QFBUUExUVFBQUEBUUFQ4UFBQUEhISDxURFQ8SFRQSEBAQDQ8P/8AAEQgAGwAbAwERAAIRAQMRAf/EABg
+AAAMBAQAAAAAAAAAAAAAAAAUHCAIG/8QAKxAAAQMDAwMDAwUAAAAAAAAAAQIDBAUGEQASIQciMQgTFEF
+RgRVhcaHD/8QAGQEAAwEBAQAAAAAAAAAAAAAABAUGBwMC/8QALxEAAQMCAgcHBQEAAAAAAAAAAQACAwQ
+RBSESMUFRYZHBEyJxobHR4RVDgfDxFP/aAAwDAQACEQMRAD8AGdeKdd3Um670bjz0waNQpzVKpVOWtSE
+uqSgKefIztKipQwSOU4wRjuBq6tj52h2YTbA8Nkp6UmMaLzzS1sz0ru1qqNyrkrqWIiMrfjsjctw4HGT
+wM/ngaEmxJjBaNqdRYPJpaczr8FTXRY1h7p9dVg1GpSZzNBkobYcec3qfgup9xjefqUqQ4n+ED651RYf
+Utla2UjMKBx6hdTvdEw2ac7JR13psz+rytkUqTv8AITq1bVZDNZo6ncCQFYFH9O1vS+lVrOW1bD0REtl
+uW8hi45Ty0hSAUkOrKlLyNvA27eBnCdZbUxNv3GjkFudDWvved55k9QpI9S0y7ujfqUk2jZ4bcaetuFP
+MSSFyENrW84h1zevcvOEgZzj9hnQ76aAQh0+Wezw1JjR1dVPO5kJuNxJ360Stj1LU/ooqREuuA9Krs4s
+LqM2A0lbDSACG0kDlRTlZKUjHJx5xplhjWui7mq+Xkk2PhxqgDrDRfxuUmL89awuO8KrUU202lDz3Z7K
+vbSpIASlW3ZwSACR9ydUsc/ZtDBs4qLkw4TPMjjmeCGSurEun2rRqJBvStJq5U6iSiLUZHx0BKRtQ2pT
+hJwPBASnggDxqUjDzdxBtx+PlaTpQEhha38DqegCM2PdL6apMrkyHKn1FuIiOuoyCpbiEA57nFLVkcnC
+OAST4OgqqMygMLsr6lQUZigvIxlstdv3pdbqsGy7nn1ym3pcEy3am06hwvsKZMYtrYQUZK1pVu2r5SkK
+APPGjIJXQQt7Jml/VJ4lCKmre50lj8JYVDopYQmu/GviZJYz2OtQS6lQ+4UlZB/B16+oz7YDzCB/wsH3
+fJIx+W8qRKWXFbxIUQrPPCiB/QGmLNQQriS4lODo1Mk1/qBQaJUJcmVSXJrYXEW+v21dw8gHnQNaBHA6
+Ros62tOaKV8kjY3OJbuWrXkya/wBV6z8ubMCn1y1OLjSnI61YXwNzaknaMDtzjgccDXKoPZUzdEDZsB9
+UFGTJO7SO/wBV0kq3mRIcHzaue4+axLP+uk/bO3DkPZMxE3jzPuv/2Q=="/>
+
+<a href="javascript:download();">dddddown</a>
+<iframe id="csvDownloadFrame"></iframe>
+
+</body>
+
+<script>
+
+var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
+var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+// At least Safari 3+: "[object HTMLElementConstructor]"
+var isChrome = !!window.chrome && !isOpera;              // Chrome 1+
+var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
+
+
+function download() {
+	//Save file
+	if (isIE) {
+	    csvData = "asdfadsfadf";
+	    
+	    
+
+	    if(window.navigator.msSaveBlob){
+	        var blob = new Blob([csvData],{ type: "application/csv;charset=utf-8;"});
+	        navigator.msSaveBlob(blob, 'aaa.csv');
+	    }
+	}
+	else
+	{
+	    csvData = "data:application/csv;charset=utf-8," + "aasdfadf";
+	    window.open(cvsData);
+	}
+}
+</script>

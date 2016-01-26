@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ZettaSoft-Process Manager</title>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type">
+
+<script src="/zPortal/assets/js/go/go.js"></script>
+<link rel="stylesheet" href="/zPortal/assets/css/jquery-ui.css" />
+<link rel="stylesheet" href="/zPortal/assets/css/jquery-ui-smoothness.min..css" />	
+<link rel="stylesheet" href="/zPortal/assets/css/topMenu.css">
+
+<!-- <link rel="stylesheet" href="/zPortal/assets/css/flick/jquery-ui.css" /> -->
+<!-- <link rel="stylesheet" href="/zPortal/assets/css/bootstrap/bootstrap.min.css"> -->
+<link rel="stylesheet" href="/zPortal/jspanel/jquery.jspanel.css">
+
+<link rel="stylesheet" href="/zPortal/assets/css/font-awesome/css/font-awesome.css">
+
+<script src="/zPortal/assets/js/jquery-2.1.4.min.js"></script>
+<script src="/zPortal/assets/js/jquery-ui/jquery-ui.min.js"></script>
+<script src="/zPortal/assets/js/jsTree/jstree.min.js"></script>
+
+<!-- <script src="/zPortal/assets/js/go/DrawCommandHandler.js"></script> -->
+<!-- <link href="/zPortal/assets/css/zVM.css" rel="stylesheet" type="text/css" /> -->
+<!-- <script src="/zPortal/assets/js/zetta/zVMClasses.js"></script> -->
+<!-- <script src="/zPortal/assets/js/zetta/zVM.js"></script> -->
+<!-- <script src="/zPortal/assets/js/zetta/zRecordMapper.js"></script> -->
+
+<!-- <script src="/zPortal/zVM/model/zMRootNode.js"></script> -->
+<!-- <script src="/zPortal/zVM/model/zMenuLink.js"></script> -->
+<!-- <script src="/zPortal/zVM/model/zMenuNode.js"></script> -->
+<!-- <script src="/zPortal/zVM/model/zMenu.js"></script> -->
+<!-- <script src="/zPortal/zVM/model/zTree.js"></script> -->
+<!-- <script src="/zPortal/zVM/model/zOrg.js"></script> -->
+
+<!-- <script src="/zPortal/assets/js/bootstrap/bootstrap.min.js"></script> -->
+<!-- <SCRIPT type="text/javascript" src="/zPortal/assets/js/mobile-detect.min.js"></SCRIPT> -->
+<!-- <script src="/zPortal/assets/js/jquery.ui.touch-punch.min.js"></script> -->
+
+<script src="/zPortal/jspanel/jquery.jspanel.js"></script>
+<!-- <script src="/zPortal/assets/js/zetta/zSettings.js"></script> -->
+
+</head>
+<body onload="">
+	<div id="editDataSource" class="draggable">
+			<div id="sourceTabs">
+				<ul>
+					<li><a href="#sourceTabs-1">FILE</a></li>
+					<li><a href="#sourceTabs-2">ODBC</a></li>
+				</ul>
+				<div id="sourceTabs-1">
+					<fieldset>
+						<legend>FILE</legend>
+						<div>
+							<input type='file' id='datafile'>
+						</div>
+						<div>
+							<button id="uploadBtn" class="elementBtn" type="button" onclick="saveDataSource()">업로드</button>
+						</div>
+						<div style="width: 100%; float: left; margin-left: 5px;">
+							<label for="zFileChoice">서버파일선택</label> <select id='zFileChoice'></select>
+						</div>
+					</fieldset>
+				</div>
+				<div id="sourceTabs-2">
+					<fieldset>					
+						<legend>ODBC</legend>
+						<div>
+							<label for="zODBCChoice">ODBC선택</label> <select id='zODBCChoice'></select>
+						</div>
+						<div>
+							<label for="url">DB선택</label> <select id='zDbChoice'></select>
+						</div>
+					</fieldset>	
+				</div>
+			</div>
+		</div>
+</body>
+<script>
+
+//김창영 2015.12.25
+function openPopup() {
+	var arr = [
+	           {
+	               item:     '<button id="btnMenu">닫기</button>',
+	               event:    "click",
+	               btnclass: "btn-sm",
+	               callback: function( event ){event.data.close()}
+	           }
+	       ];
+	
+	jQuery.jsPanel({
+		title : "데이터소스선택",
+		theme : "light",
+		position : "center",
+		toolbarFooter: arr,
+		content: jQuery("#editDataSource")
+	});
+	
+	jQuery("#sourceTabs").tabs();
+}
+
+
+openPopup();
+
+</script>
+</html>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>ZettaSoft sheetDemo</title>
+<style>
+#drop{
+	border:2px dashed #bbb;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	border-radius:5px;
+	padding:25px;
+	text-align:center;
+	font:20pt bold,"Vollkorn";
+	color:#bbb;
+	width:90%;
+}
+#b64data{
+	width:100%;
+}
+</style>
+</head>
+<body>
+	<div>
+		<div id="drop">XLSX / XLS / XML 파일을 여기에 끌어다 놓으세요.</div>
+		<div>
+			<button id="saveServer" onclick="saveServer()">서버에 저장</button>
+		</div>
+	</div>
+	
+	<div id="zv"></div>
+</body>
+
+<link href="/zPortal/jspanel/jquery.jspanel.css" rel="stylesheet">
+<link href="/zPortal/assets/css/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+<LINK type="text/css" rel="stylesheet" href="/zPortal/assets/css/jquery-ui.css" />
+
+<script src="/zPortal/assets/js/jquery-2.1.4.min.js"></script>
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/jquery-ui/jquery-ui.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="/zPortal/assets/js/mobile-detect.min.js"></SCRIPT>
+<script src="/zPortal/assets/js/jquery.ui.touch-punch.min.js"></script>
+
+<script src="/zPortal/jspanel/jquery.jspanel.js"></script>
+<script src="/zPortal/assets/js/zetta/zSettings.js"></script>
+
+<link rel="stylesheet" href="/zPortal/assets/css/bootstrap/bootstrap.min.css">
+<link rel="stylesheet" href="/zPortal/assets/css/jqGrid/ui.jqgrid.css">
+
+<script src="/zPortal/assets/js/jquery-migrate-1.2.1.js"></script>
+<script src="/zPortal/assets/js/jsGrid/js/i18n/grid.locale-kr.js"></script>
+<script src="/zPortal/assets/js/jsGrid/js/jquery.jqGrid.min.js"></script>
+
+<script src="/zPortal/assets/js/js-xlsx/shim.js"></script>
+<script src="/zPortal/assets/js/js-xlsx/jszip.js"></script>
+<script src="/zPortal/assets/js/js-xlsx/xlsx.js"></script>
+<script src="/zPortal/assets/js/js-xlsx/ods.js"></script>
+<script>
+
+var parameters = location.search.substring(1).split("&");
+var fileName = null;
+var objectKey = null;
+if (parameters.length == 1) {
+    fileName = parameters[0].split("=")[1];
+} else if (parameters.length == 2) {
+    fileName = parameters[0].split("=")[1];
+    objectKey = parameters[1].split("=")[1];
+}
+
+if(!fileName) {
+	alert("프로세스정보가 없으므로 text에 저장됩니다.") ;
+	fileName="test";
+}
+		
+if(!objectKey) objectKey="data_12";
+
+var tableData = null;
+var X = XLSX;
+var XW = {
+	/* worker message */
+	msg: 'xlsx',
+	/* worker scripts */
+	rABS: '/zPortal/assets/js/js-xlsx/xlsxworker2.js',
+	norABS: '/zPortal/assets/js/js-xlsx/xlsxworker1.js',
+	noxfer: '/zPortal/assets/js/js-xlsx//xlsxworker.js'
+};
+
+var rABS = typeof FileReader !== "undefined" && typeof FileReader.prototype !== "undefined" && typeof FileReader.prototype.readAsBinaryString !== "undefined";
+var use_worker = typeof Worker !== 'undefined';
+var transferable = use_worker;
+
+var wtf_mode = false;
+
+function fixdata(data) {
+	var o = "", l = 0, w = 10240;
+	for(; l<data.byteLength/w; ++l) o+=String.fromCharCode.apply(null,new Uint8Array(data.slice(l*w,l*w+w)));
+	o+=String.fromCharCode.apply(null, new Uint8Array(data.slice(l*w)));
+	return o;
+}
+
+function ab2str(data) {
+	var o = "", l = 0, w = 10240;
+	for(; l<data.byteLength/w; ++l) o+=String.fromCharCode.apply(null,new Uint16Array(data.slice(l*w,l*w+w)));
+	o+=String.fromCharCode.apply(null, new Uint16Array(data.slice(l*w)));
+	return o;
+}
+
+function s2ab(s) {
+	var b = new ArrayBuffer(s.length*2), v = new Uint16Array(b);
+	for (var i=0; i != s.length; ++i) v[i] = s.charCodeAt(i);
+	return [v, b];
+}
+
+function xw_noxfer(data, cb) {
+	var worker = new Worker(XW.noxfer);
+	worker.onmessage = function(e) {
+		switch(e.data.t) {
+			case 'ready': break;
+			case 'e': console.error(e.data.d); break;
+			case XW.msg: cb(JSON.parse(e.data.d)); break;
+		}
+	};
+	var arr = rABS ? data : btoa(fixdata(data));
+	worker.postMessage({d:arr,b:rABS});
+}
+
+function xw_xfer(data, cb) {
+	var worker = new Worker(rABS ? XW.rABS : XW.norABS);
+	worker.onmessage = function(e) {
+		switch(e.data.t) {
+			case 'ready': break;
+			case 'e': console.error(e.data.d); break;
+			default: xx=ab2str(e.data).replace(/\n/g,"\\n").replace(/\r/g,"\\r"); console.log("done"); cb(JSON.parse(xx)); break;
+		}
+	};
+	if(rABS) {
+		var val = s2ab(data);
+		worker.postMessage(val[1], [val[1]]);
+	} else {
+		worker.postMessage(data, [data]);
+	}
+}
+
+function xw(data, cb) {
+	//transferable = document.getElementsByName("xferable")[0].checked;
+	transferable = false;
+	if(transferable) xw_xfer(data, cb);
+	else xw_noxfer(data, cb);
+}
+
+function get_radio_value( radioName ) {
+	var radios = document.getElementsByName( radioName );
+	for( var i = 0; i < radios.length; i++ ) {
+		if( radios[i].checked || radios.length === 1 ) {
+			return radios[i].value;
+		}
+	}
+}
+
+function to_json(workbook) {
+	var result = [];
+	workbook.SheetNames.forEach(function(sheetName) {
+		var roa = X.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
+		if(roa.length > 0){
+			result.push({tableName:sheetName, data:convertSimpleJson(roa)});
+		}
+	});
+	return result;
+}
+
+function to_simple_json(workbook) {
+	var result = [];
+	workbook.SheetNames.forEach(function(sheetName) {
+		var roa = X.utils.sheet_to_simple_json(workbook.Sheets[sheetName]);
+		console.info("roa",roa);
+		if(roa.length > 0){
+			var obj = JSON.parse("[" + roa + "]");
+			var output = {SHEET: sheetName, data:obj};
+			result.push(output);
+		}
+	});
+	return result;
+}
+
+function to_csv(workbook) {
+	var result = [];
+	workbook.SheetNames.forEach(function(sheetName) {
+		var csv = X.utils.sheet_to_csv(workbook.Sheets[sheetName]);
+		if(csv.length > 0){
+			result.push("SHEET: " + sheetName);
+			result.push("");
+			result.push(csv);
+		}
+	});
+	return result.join("\n");
+}
+
+function to_formulae(workbook) {
+	var result = [];
+	workbook.SheetNames.forEach(function(sheetName) {
+		var formulae = X.utils.get_formulae(workbook.Sheets[sheetName]);
+		if(formulae.length > 0){
+			result.push("SHEET: " + sheetName);
+			result.push("");
+			result.push(formulae.join("\n"));
+		}
+	});
+	return result.join("\n");
+}
+
+var tarea = document.getElementById('b64data');
+function b64it() {
+	if(typeof console !== 'undefined') console.log("onload", new Date());
+	var wb = X.read(tarea.value, {type: 'base64',WTF:wtf_mode});
+	process_wb(wb);
+}
+
+function process_wb(wb) {
+	var output = "";
+// 	switch(get_radio_value("format")) {
+// 		case "json":
+// 			output = JSON.stringify(to_json(wb), 2, 2);
+// 			break;
+// 		case "form":
+// 			output = to_formulae(wb);
+// 			break;
+// 		case "simpleJson":
+// 			output = to_simple_json(wb);
+// 			break;
+// 		default:
+// 		output = to_csv(wb);
+// 	}
+	//output = JSON.stringify(to_simple_json(wb), 2, 2);
+	tableData = to_json(wb);
+// 	if(out.innerText === undefined) out.textContent = output;
+// 	else out.innerText = output;
+// 	if(typeof console !== 'undefined') console.log("output", new Date());
+	showTabs(tableData);
+}
+
+var drop = document.getElementById('drop');
+var dropFileName = "";
+function handleDrop(e) {
+	
+	processShow("분석중입니다.", 3000);
+	
+	e.stopPropagation();
+	e.preventDefault();
+	rABS = false;
+	use_worker = true;
+	var files = e.dataTransfer.files;
+	var f = files[0];
+	{
+		var reader = new FileReader();
+		var name = f.name;
+		dropFileName = name;
+		reader.onload = function(e) {
+			if(typeof console !== 'undefined') console.log("onload", new Date(), rABS, use_worker);
+			var data = e.target.result;
+			if(use_worker) {
+				xw(data, process_wb);
+			} else {
+				var wb;
+				if(rABS) {
+					wb = X.read(data, {type: 'binary'});
+				} else {
+				var arr = fixdata(data);
+					wb = X.read(btoa(arr), {type: 'base64'});
+				}
+				process_wb(wb);
+			}
+		};
+		if(rABS) reader.readAsBinaryString(f);
+		else reader.readAsArrayBuffer(f);
+	}
+}
+
+function handleDragover(e) {
+	e.stopPropagation();
+	e.preventDefault();
+	e.dataTransfer.dropEffect = 'copy';
+}
+
+if(drop.addEventListener) {
+	drop.addEventListener('dragenter', handleDragover, false);
+	drop.addEventListener('dragover', handleDragover, false);
+	drop.addEventListener('drop', handleDrop, false);
+}
+
+
+function convertSimpleJson(obj){
+	if(obj.length == 0) return null;
+	
+	console.info("result", JSON.stringify(obj));
+	var result = new Array();
+	var keys = Object.keys(obj[0]);
+	result.push(keys);
+	for(var index in obj){
+		var row = [];
+		for(var key in obj[index]){
+			row.push(obj[index][key].trim());
+		}
+		result.push(row);
+	}
+	
+	console.info("result", JSON.stringify(result));
+	return result;
+}
+
+function saveServer(){
+	if(tableData.length ==0) {
+		alert("선택된 데이터가 없습니다.");
+		return;
+	}
+	if(!fileName){
+		alert("선택된 process가 없습니다.");
+		return;
+	}
+	if(!objectKey){
+		alert("선택된 데이터소스가 없습니다.");
+		return;
+	}
+	
+	var sendInfo = {
+		fileName : "process//" + fileName,
+		objectKey : "data_" + objectKey,
+		content : JSON.stringify(tableData)
+	};
+
+	processShow("저장중입니다.", 2000);
+	
+	jQuery.ajax({
+		type : "POST",
+		url : "/zPortal/modelManager/save.do",
+		dataType : "json",
+		success : function(msg) {
+			if (msg) {
+				//object저장
+				$.ajax({
+					type : "POST",
+					url : "/zPortal/modelManager/save.do",
+					dataType : "json",
+					success : function(msg) {
+						if (msg) {
+							processShow("저장중입니다.", 2000);
+						} else {
+							processShow("저장할수없습니다.", 2000);
+						}
+					},
+					error : function(request, status, error) {
+						alert("request:" + request.responseText + "\n error:" + error);
+					},
+					data : {
+						fileName:"process//" + fileName, 
+						objectKey: objectKey, 
+						content : "{ \"sourceType\": \"FILE\" , \"connName\" : \"data_" + objectKey + "\", \"subName\" :  \"" + dropFileName + "\"}"
+					}
+				});
+			} else {
+				processShow("저장할수없습니다.", 2000);
+			}
+		},
+		error : function(request, status, error) {
+			alert("request:" + request.responseText + "\n error:" + error);
+		},
+		data : sendInfo
+	});
+}
+
+function showTabs(tableData){	
+	for (var index = 0 ; index < tableData.length ; index++) {
+        var table = tableData[index];
+        addTab(table.tableName, table.data);
+    }    
+	
+    var tabs = $("#tabs").tabs();
+    tabs.height(window.innerHight * 0.95);
+    tabs.tabs("refresh");
+}
+
+
+function addTab(tableName, tableData) {
+	var dataSet = tableData.slice(0);
+	var tab = '<div id="tabs"><ul></ul></div>';
+	jQuery("#zv").append(tab);
+	
+    console.info(tableName, JSON.stringify(dataSet));
+    var tabTemplate = "<li><a href='#{href}'>#{label}</a></li>";
+    var li = $(tabTemplate.replace(/#\{href\}/g, "#" + tableName).replace(/#\{label\}/g, tableName));
+
+    jQuery("#tabs").find("ul").append(li);
+    var html = "<div id='" + tableName + "'><table id='" + tableName + "_grid'></table><div id='" + tableName + "_pager'></div></div>";
+    jQuery("#tabs").append(html);
+
+    var row = dataSet[0];
+    var header = new Array();
+    var colModel = new Array();
+
+    for (var i = 0; i < row.length; i++) {
+        header.push(row[i]);
+        var model = {
+            name: row[i],
+            index: row[i],
+            width: '20%',
+            align: 'center'
+        };
+        colModel.push(model);
+    }
+    dataSet.splice(0, 1);
+    var gridData = [];
+    for (var i = 0; i < dataSet.length; i++) {
+    	
+    	var data = "{";
+    	for(var hcount = 0; hcount < header.length; hcount++){
+    		data += "\"" + header[hcount] + "\":\"" + dataSet[i][hcount] + "\","
+    	}
+    	data = data.substring(0, data.length -1) + "}";
+    	console.info(data);
+    	gridData.push(JSON.parse(data));
+    }
+    
+    console.info("dataset", JSON.stringify(dataSet));        
+    theGrid = jQuery("#" + tableName + "_grid");
+
+    // jqGrid 옵션 설정 
+    theGrid.jqGrid({
+        datatype: 'local',
+        data: gridData,
+        colNames: header,
+        colModel: colModel,
+        autowidth: true,
+        gridview: true,
+        rownumbers: false,
+        rowNum: 10,
+        rowList: [5, 10, 30, 50],
+        sortname: header[0],
+        pager: '#' + tableName + "_pager",
+        sortorder: 'asc',
+        viewrecords: true,
+        caption: tableName,
+        height: '100%',
+        width: 'auto'
+    });    
+}
+
+</script>
+</html>

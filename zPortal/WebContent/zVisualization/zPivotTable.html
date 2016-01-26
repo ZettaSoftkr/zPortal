@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<title>Zetta Pivot Table</title>
+	<script type="text/javascript" src="libs/d3/d3.min.js"></script>
+	<script type="text/javascript" src="libs/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript" src="libs/jquery-ui-1.11.4/jquery-ui.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="libs/pivot.css">
+	<script type="text/javascript" src="libs/pivot.js"></script>
+	<script type="text/javascript" src="libs/d3_renderers.js"></script>
+	<style>
+	body {
+		font-family: Verdana;
+	}
+	
+	.node {
+		border: solid 1px white;
+		font: 10px sans-serif;
+		line-height: 12px;
+		overflow: hidden;
+		position: absolute;
+		text-indent: 2px;
+	}
+	</style>
+	</head>
+	<body oncontextmenu="return false;">
+		<div id="output" style="margin: 30px;"></div>
+	</body>
+	<script type="text/javascript">
+		var parameters = location.search.substring(1).split("&");
+	
+		var temp = parameters[0].split("=");
+		var fileName = unescape(temp[1]);
+		temp = parameters[1].split("=");
+		var objectKey = unescape(temp[1]);
+		
+		$(function() {
+			var derivers = $.pivotUtilities.derivers;
+			var renderers = $.extend($.pivotUtilities.renderers, $.pivotUtilities.d3_renderers);
+	
+			var sendInfo = {
+			    	fileName : fileName,
+			    	objectKey : objectKey
+				};
+
+			$.ajax({
+				type : "POST",
+				url : "/zPortal/modelManager/getTableData.do",
+				dataType : "json",
+				success : function(msg) {
+					var dataSet = jQuery.parseJSON(msg);
+					
+					$("#output").pivotUI(dataSet, {
+						renderers : renderers,
+						cols : ["기관명"],
+						rows : ["재난복구유형"],
+						rendererName : "Table"
+					});
+				},
+				error : function(request, status, error) {
+					alert("request:" + request.responseText + "\n error:" + error);
+				},
+				data : sendInfo
+			});
+		});
+		
+	</script>
+</html>
